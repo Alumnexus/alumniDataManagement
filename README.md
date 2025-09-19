@@ -33,5 +33,6 @@ It provides institutions with a reliable system to store, update, and utilize al
 -** Participate in events and discussions
 
 -** Admin can manage alumni data, events, and communications
+
 ---------------------------------------------------------------------------
 
