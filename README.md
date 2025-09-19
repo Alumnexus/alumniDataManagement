@@ -20,19 +20,19 @@ It provides institutions with a reliable system to store, update, and utilize al
 - **Backend:** Node.js ,Express.js
 - **Database:** MongoDB
 - **Cloud Hosting:** AWS 
-- **Version Control:**  GitHub
+- **Version Control:**  Git
 ------------------------------------------------------------------------------------
 ## Usage
 
--** Register/Login as Alumni or Admin
+- **Register/Login as Alumni or Admin
 
--** Update profile details and connect with peers
+- **Update profile details and connect with peers
 
--** Explore alumni directory and networking opportunities
+- **Explore alumni directory and networking opportunities
 
--** Participate in events and discussions
+- **Participate in events and discussions
 
--** Admin can manage alumni data, events, and communications
+- **Admin can manage alumni data, events, and communications
 
 
 
