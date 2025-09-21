@@ -21,7 +21,7 @@ It provides institutions with a reliable system to store, update, and utilize al
 - **Backend:** Node.js ,Express.js
 - **Database:** MongoDB
 - **Cloud Hosting:** AWS 
-- **Version Control:**  Git & GitHub
+- **Version Control:**  Git and GitHub
 ------------------------------------------------------------------------------------
 ## Usage
 
