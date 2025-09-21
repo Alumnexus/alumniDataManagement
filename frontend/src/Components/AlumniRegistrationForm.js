@@ -1,30 +1,196 @@
-import React from 'react';
+import React, { useState } from "react";
+import {
+  Box,
+  TextField,
+  Checkbox,
+  FormControlLabel,
+  Button,
+  Typography,
+  Stack,
+  IconButton,
+  InputAdornment,
+} from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 const AlumniRegistrationForm = () => {
-    return (
-        <div style={{ border: '1px solid #ccc', padding: '20px', borderRadius: '8px',overflow: 'auto' }}>
-            <h3>Alumni Registration</h3>
-            <form>
-                <input type="text" placeholder="Username" required />
-                <input type="email" placeholder="Email ID" required />
-                <input type="text" placeholder="Degree" required />
-                <input type="text" placeholder="Department" required />
-                <input type="text" placeholder="Graduation Year" required />
-                <input type="text" placeholder="Current Job" />
-                <input type="text" placeholder="Title (of job)" />
-                <input type="text" placeholder="Company" />
-                <input type="text" placeholder="LinkedIn" />
-                <label>
-                    Is Mentor?
-                    <input type="checkbox" />
-                </label>
-                <input type="password" placeholder="Password" required />
-                <input type="password" placeholder="Confirm Password" required />
-                <button type="button">Get OTP</button>
-                <button type="submit">Sign up</button>
-            </form>
-        </div>
-    );
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    degree: "",
+    department: "",
+    graduationYear: "",
+    currentJob: "",
+    title: "",
+    company: "",
+    linkedIn: "",
+    isMentor: false,
+    password: "",
+    confirmPassword: "",
+  });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [name]: type === "checkbox" ? checked : value,
+    });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log("Alumni Registration Data:", formData);
+    // TODO: Add API call
+  };
+
+  return (
+    <Box
+      sx={{
+        border: "1px solid #ccc",
+        padding: 3,
+        borderRadius: 2,
+        overflow: "auto",
+      }}
+    >
+      <Typography variant="h5" gutterBottom>
+        Alumni Registration
+      </Typography>
+
+      <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+        <Stack spacing={2}>
+          <TextField
+            label="Username"
+            name="username"
+            value={formData.username}
+            onChange={handleChange}
+            fullWidth
+            required
+          />
+          <TextField
+            label="Email ID"
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            fullWidth
+            required
+          />
+          <TextField
+            label="Degree"
+            name="degree"
+            value={formData.degree}
+            onChange={handleChange}
+            fullWidth
+            required
+          />
+          <TextField
+            label="Department"
+            name="department"
+            value={formData.department}
+            onChange={handleChange}
+            fullWidth
+            required
+          />
+          <TextField
+            label="Graduation Year"
+            name="graduationYear"
+            value={formData.graduationYear}
+            onChange={handleChange}
+            fullWidth
+            required
+          />
+          <TextField
+            label="Current Job"
+            name="currentJob"
+            value={formData.currentJob}
+            onChange={handleChange}
+            fullWidth
+          />
+          <TextField
+            label="Title (of job)"
+            name="title"
+            value={formData.title}
+            onChange={handleChange}
+            fullWidth
+          />
+          <TextField
+            label="Company"
+            name="company"
+            value={formData.company}
+            onChange={handleChange}
+            fullWidth
+          />
+          <TextField
+            label="LinkedIn"
+            name="linkedIn"
+            value={formData.linkedIn}
+            onChange={handleChange}
+            fullWidth
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                name="isMentor"
+                checked={formData.isMentor}
+                onChange={handleChange}
+              />
+            }
+            label="Is Mentor?"
+          />
+          <TextField
+            label="Password"
+            name="password"
+            type={showPassword ? "text" : "password"}
+            value={formData.password}
+            onChange={handleChange}
+            fullWidth
+            required
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowPassword(!showPassword)}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+          <TextField
+            label="Confirm Password"
+            name="confirmPassword"
+            type={showConfirmPassword ? "text" : "password"}
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            fullWidth
+            required
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    edge="end"
+                  >
+                    {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+          <Stack direction="row" spacing={2}>
+            <Button variant="outlined">Get OTP</Button>
+            <Button type="submit" variant="contained" color="success">
+              Sign Up
+            </Button>
+          </Stack>
+        </Stack>
+      </Box>
+    </Box>
+  );
 };
 
 export default AlumniRegistrationForm;

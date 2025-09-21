@@ -1,43 +1,74 @@
-import React, { useState } from 'react';
-import AlumniRegistrationForm from './AlumniRegistrationForm';
-import StudentRegistrationForm from './StudentRegistrationForm';
-import AdminRegistrationForm from './AdminRegistrationForm';
-import RecruiterRegistrationForm from './RecruiterRegistrationForm';
-import './RegistrationPage.css';
+import React, { useState } from "react";
+import AlumniRegistrationForm from "./AlumniRegistrationForm";
+import StudentRegistrationForm from "./StudentRegistrationForm";
+import AdminRegistrationForm from "./AdminRegistrationForm";
+import RecruiterRegistrationForm from "./RecruiterRegistrationForm";
+import { Container, Paper, Typography, Button, Stack, Box } from "@mui/material";
+
+const userTypes = [
+  { label: "Alumni", component: <AlumniRegistrationForm /> },
+  { label: "Student", component: <StudentRegistrationForm /> },
+  { label: "Admin", component: <AdminRegistrationForm /> },
+  { label: "Recruiter", component: <RecruiterRegistrationForm /> },
+];
 
 const RegistrationPage = () => {
-    const [userType, setUserType] = useState(null);
+  const [selectedUserType, setSelectedUserType] = useState(null);
 
-    const handleUserTypeSelection = (type) => {
-        setUserType(type);
-    };
+  return (
+    <Container
+      maxWidth="md"
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+        backgroundColor: "#f0f2f5",
+        paddingY: 4,
+      }}
+    >
+      <Paper
+        elevation={6}
+        sx={{
+          width: "100%",
+          padding: 4,
+          borderRadius: 3,
+          maxHeight: "80vh",
+          overflowY: "auto",
+          textAlign: "center",
+        }}
+      >
+        <Typography variant="h4" gutterBottom>
+          Register as:
+        </Typography>
 
-    return (
-        <div style={{ padding: '20px',
-            minHeight: "100vh",
-            justifyContent: "center",
-            alignItems: "center",
-            display: "flex",
-            height: "100vh",
-            backgroundColor: "#f0f2f5" }}>
-            <div style={{backgroundColor: "#ffffff",width: "70vw",maxHeight: "80vh",overflow: "auto",padding: "20px",borderRadius: "5px",boxShadow:"rgba(0,0,0,0.1) 0px 4px 8px",position: "relative"}}>
-              <h2 style={{ textAlign: 'center' }}>Register as:</h2>
-              <nav className='nav_button'>
-                <ul className='ul_button'>
-                  <li className='ul_n'><button className = 'ul_b' onClick={() => handleUserTypeSelection('Alumni')}>Alumni</button></li>
-                  <li className='ul_n'><button className = 'ul_b' onClick={() => handleUserTypeSelection('Student')}>Student</button></li>
-                  <li className='ul_n'><button className = 'ul_b' onClick={() => handleUserTypeSelection('Admin')}>Admin</button></li>
-                  <li className='ul_n'><button className = 'ul_b' onClick={() => handleUserTypeSelection('Recruiter')}>Recruiter</button></li>
-                </ul>
-              </nav>
+        {/* User Type Buttons */}
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={2}
+          justifyContent="center"
+          marginBottom={3}
+          flexWrap="wrap"
+        >
+          {userTypes.map((type) => (
+            <Button
+              key={type.label}
+              variant={selectedUserType === type.label ? "contained" : "outlined"}
+              color="success"
+              onClick={() => setSelectedUserType(type.label)}
+            >
+              {type.label}
+            </Button>
+          ))}
+        </Stack>
 
-              {userType === 'Alumni' && <AlumniRegistrationForm />}
-              {userType === 'Student' && <StudentRegistrationForm />}
-              {userType === 'Admin' && <AdminRegistrationForm />}
-              {userType === 'Recruiter' && <RecruiterRegistrationForm />}
-        </div>
-            </div>
-    );
+        {/* Render the selected registration form */}
+        <Box>
+          {userTypes.find((type) => type.label === selectedUserType)?.component}
+        </Box>
+      </Paper>
+    </Container>
+  );
 };
 
 export default RegistrationPage;
