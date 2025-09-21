@@ -17,7 +17,7 @@ function About() {
 
 export default function Header() {
   return (
-    <BrowserRouter>
+    <>
       {/* Navbar */}
       <AppBar position="static" sx={{ backgroundColor: "#0D47A1", height: 80, justifyContent: "center" }}>
         <Toolbar
@@ -77,11 +77,11 @@ export default function Header() {
         </Toolbar>
       </AppBar>
 
-      {/* <Routes>
+      <Routes>
         <Route path="/about" element={<About />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<RegistrationPage />} />
-      </Routes> */}
-    </BrowserRouter>
+      </Routes>
+      </>
   );
 }
