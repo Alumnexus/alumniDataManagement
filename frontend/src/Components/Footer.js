@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Typography, Container, Stack, Link, IconButton } from "@mui/material";
-import { Facebook, Twitter, LinkedIn, Instagram, GitHub } from "@mui/icons-material";
+import { Facebook, LinkedIn, Instagram, GitHub } from "@mui/icons-material";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
