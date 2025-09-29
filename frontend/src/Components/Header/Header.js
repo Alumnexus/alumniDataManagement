@@ -1,7 +1,7 @@
 import React from "react";
-import logo from "../logo.png";
+import logo from "../../logo.png";
 import {Routes, Route, Link } from "react-router-dom";
-import RegistrationPage from "./RegistrationPage";
+import RegistrationPage from "./Registration/RegistrationPage";
 import Login from "./Login";
 import About from "./About";
 import {
