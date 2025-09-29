@@ -1,10 +1,10 @@
-import Importannt from "../HomeBtn/Important";
+import Important from "../HomeBtn/Important";
 import HeroSection from "./HeroSection";
 
 export default function MainHeroPage(){
     return(
         <>
-            <Importannt/>
+            <Important/>
             <HeroSection/>
         </>
     )

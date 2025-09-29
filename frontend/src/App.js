@@ -1,16 +1,20 @@
 import './App.css';
 import {Routes, Route} from "react-router-dom";
-import Footer from './Components/Footer/Footer';
+// Header
 import Header from './Components/Header/Header';
-import Important from "./Components/HomeBtn/Important";
-import EventsPage from "./Components/EngageHub/EventPage";
-import InternshipsPage from "./Components/EngageHub/InternshipPage";
-import JobsPage from "./Components/EngageHub/JobPage";
-import MentorshipPage from "./Components/EngageHub/MentorShipPage";
-import AlumniDirectoryPage from "./Components/EngageHub/AlumniDirectoryPage";
+//Footer
+import Footer from './Components/Footer/Footer';
+//HomeBtn/Important (Features)
 import Features from './Components/HomeBtn/Important';
+// HeroSection (MainHeroPage) => (Important.js,HeroSection.js)
 import MainHeroPage from './Components/HeroSection/MainHeroPage';
 import AddEventForm from './Components/AddForm/AddEventForm';
+// EngageHub (Events, internships, Job Portal, mentorship, AlumniDirectory)
+import MentorshipPage from "./Components/EngageHub/MentorShipPage";
+import JobsPage from "./Components/EngageHub/JobPage";
+import InternshipsPage from "./Components/EngageHub/InternshipPage";
+import EventsPage from "./Components/EngageHub/EventPage";
+import AlumniDirectoryPage from "./Components/EngageHub/AlumniDirectoryPage";
 
 
 function App() {
