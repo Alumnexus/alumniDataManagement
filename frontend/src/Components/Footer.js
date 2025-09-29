@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Typography, Container, Stack, Link, IconButton } from "@mui/material";
-import { Facebook, LinkedIn, Instagram, GitHub } from "@mui/icons-material";
+import { YouTube, LinkedIn, Instagram, GitHub } from "@mui/icons-material";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -50,9 +50,9 @@ export default function Footer() {
             </Typography>
             <Stack direction="row" spacing={1}>
               <IconButton href="#" sx={{ color: "#ffffff" }}>
-                <Facebook />
+                <YouTube />
               </IconButton>
-              <IconButton href="#" sx={{ color: "#ffffff" }}>
+              <IconButton href="https://github.com/Alumnexus/alumniDataManagement" target="_blank" sx={{ color: "#ffffff" }}>
                 <GitHub />
               </IconButton>
               <IconButton href="#" sx={{ color: "#ffffff" }}>
