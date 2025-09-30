@@ -1,4 +1,5 @@
 import React from "react";
+import {Routes, Route, Link as RouterLink } from "react-router-dom";
 import { Box, Typography, Container, Stack, Link, IconButton } from "@mui/material";
 import { YouTube, LinkedIn, Instagram, GitHub } from "@mui/icons-material";
 
@@ -36,10 +37,10 @@ export default function Footer() {
               Quick Links
             </Typography>
             <Stack spacing={1}>
-              <Link href="/" color="inherit" underline="hover">Home</Link>
-              <Link href="/about" color="inherit" underline="hover">About</Link>
-              <Link href="/login" color="inherit" underline="hover">Login</Link>
-              <Link href="/register" color="inherit" underline="hover">Register</Link>
+              <Link component={RouterLink} to="/" color="inherit" underline="hover">Home</Link>
+              <Link component={RouterLink} to="/about" color="inherit" underline="hover">About</Link>
+              <Link component={RouterLink} to="/login" color="inherit" underline="hover">Login</Link>
+              <Link component={RouterLink} to="/register" color="inherit" underline="hover">Register</Link>
             </Stack>
           </Box>
 

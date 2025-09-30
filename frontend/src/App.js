@@ -32,7 +32,6 @@ function App() {
         <Route path="/alumni-directory" element={<AlumniDirectoryPage />} />
         <Route path="/add-event" element={<AddEventForm />} />
       </Routes>
-      {/* <HeroSection/> */}
       <Footer/>
     </div>
     </>
