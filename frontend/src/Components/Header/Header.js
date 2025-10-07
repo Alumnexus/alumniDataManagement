@@ -3,7 +3,7 @@ import logo from "../../logo.png";
 import {Routes, Route, Link } from "react-router-dom";
 import RegistrationPage from "./Registration/RegistrationPage";
 import Login from "./Login";
-import About from "./About";
+import About from "./About/About";
 import {
   AppBar,
   Toolbar,
@@ -17,13 +17,6 @@ import {
   useTheme,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-
-
-
-
-
-
-
 
 
 export default function Header() {

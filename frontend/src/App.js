@@ -1,4 +1,5 @@
 import './App.css';
+import React, { useState } from "react";
 import {Routes, Route} from "react-router-dom";
 // Header
 import Header from './Components/Header/Header';
@@ -14,7 +15,9 @@ import MentorshipPage from "./Components/EngageHub/MentorShipPage";
 import JobsPage from "./Components/EngageHub/JobPage";
 import InternshipsPage from "./Components/EngageHub/InternshipPage";
 import EventsPage from "./Components/EngageHub/EventPage";
+import AddInternForm from "./Components/AddForm/AddInternForm"
 import AlumniDirectoryPage from "./Components/EngageHub/AlumniDirectoryPage";
+import InternApplicationForm from './Components/EngageHub/ReletedForm/InternApplicationForm';
 
 
 function App() {
@@ -31,6 +34,8 @@ function App() {
         <Route path="/mentorship" element={<MentorshipPage />} />
         <Route path="/alumni-directory" element={<AlumniDirectoryPage />} />
         <Route path="/add-event" element={<AddEventForm />} />
+        <Route path="/add-internship" element={<AddInternForm />}/>
+        <Route path='/Apply-Internship' element={<InternApplicationForm/>}/>
       </Routes>
       <Footer/>
     </div>
