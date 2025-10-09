@@ -1,173 +1,147 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import {
+  Container,
   Box,
-  Paper,
   Typography,
-  Grid,
   TextField,
+  MenuItem,
   Button,
-  CircularProgress,
-  Snackbar,
-  Alert,
-  InputAdornment,
+  FormControl,
+  InputLabel,
+  Select,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  FormLabel
 } from '@mui/material';
-import PersonIcon from '@mui/icons-material/Person';
-import EmailIcon from '@mui/icons-material/Email';
-import PhoneIcon from '@mui/icons-material/Phone';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-
-// In a real app, you would fetch this data from an API.
-// For now, we'll redefine it here to find the selected internship.
-// **IMPORTANT**: Added a unique `id` to each internship.
-const internships = [
-  { id: 1, title: "Software Development Intern", company: "TechCorp Solutions", duration: "3 Months", location: "Remote", skill: "Web Dev" },
-  { id: 2, title: "Machine Learning Intern", company: "AI Innovators", duration: "6 Months", location: "On-site", skill: "ML" },
-  { id: 3, title: "Data Analyst Intern", company: "DataWorks", duration: "4 Months", location: "Remote", skill: "Data Science" },
-  { id: 4, title: "Frontend Developer Intern", company: "WebFlow Inc.", duration: "3 Months", location: "On-site", skill: "Web Dev" },
-  { id: 5, title: "AI Research Intern", company: "Future AI", duration: "6 Months", location: "Remote", skill: "ML" },
-  { id: 6, title: "Business Intelligence Intern", company: "DataWorks", duration: "4 Months", location: "On-site", skill: "Data Science" },
-];
+import CloudUploadIcon from '@mui/icons-material/CloudUpload'; // Import the icon
 
 export default function InternApplicationForm() {
-  const { internshipId } = useParams(); // Get the ID from the URL
-  const navigate = useNavigate();
-  const [internship, setInternship] = useState(null);
-  const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
-  const [resume, setResume] = useState(null);
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-  
-  const fileInputRef = useRef(null);
+  // State to hold and manage the form's data
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    passingYear: '',
+    course: '',
+    internshipExperience: '',
+    ugCgpa: '',
+    resume: null // New state for the resume file
+  });
 
-  useEffect(() => {
-    // Find the internship using the ID from the URL parameters
-    const selectedInternship = internships.find(i => i.id.toString() === internshipId);
-    if (selectedInternship) {
-      setInternship(selectedInternship);
-    } else {
-      // Optional: Handle case where internship is not found
-      navigate('/404'); // Redirect to a not-found page
-    }
-  }, [internshipId, navigate]);
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleFileChange = (e) => {
-    if (e.target.files.length > 0) {
-      setResume(e.target.files[0]);
-    }
-  };
-
-  const validate = () => {
-    let tempErrors = {};
-    if (!formData.name) tempErrors.name = "Full name is required.";
-    if (!formData.email) tempErrors.email = "Email is required.";
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) tempErrors.email = "Email is not valid.";
-    if (!resume) tempErrors.resume = "A resume is required.";
-    setErrors(tempErrors);
-    return Object.keys(tempErrors).length === 0;
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (validate()) {
-      setLoading(true);
-      // Simulate API call
-      setTimeout(() => {
-        setLoading(false);
-        console.log("Form Data:", formData);
-        console.log("Resume:", resume);
-        setOpenSnackbar(true);
-        // Navigate back after a short delay
-        setTimeout(() => {
-          navigate('/internships', { state: { successMessage: `Your application for ${internship.title} was submitted!` } });
-        }, 2000);
-      }, 2000);
-    }
+  // Handler for text inputs, selects, and radios
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFormData(prevState => ({
+      ...prevState,
+      [name]: value
+    }));
   };
   
-  if (!internship) {
-    return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><CircularProgress /></Box>;
-  }
+  // A separate handler specifically for the file input
+  const handleFileChange = (event) => {
+    setFormData(prevState => ({
+      ...prevState,
+      resume: event.target.files[0] // Get the first file
+    }));
+  };
+
+  // The function that runs when the form is submitted
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    // IMPORTANT: For file uploads, you typically use the FormData API
+    // to send the data to your server.
+    const submissionData = new FormData();
+    Object.keys(formData).forEach(key => {
+        submissionData.append(key, formData[key]);
+    });
+    
+    // You would now send `submissionData` to your API endpoint.
+    // For this example, we'll just log the original state to the console.
+    console.log('Form Data Submitted:', formData);
+    // You can also inspect the FormData object:
+    // for (let [key, value] of submissionData.entries()) { 
+    //   console.log(key, value);
+    // }
+    alert('Application submitted successfully! Check the console for the data.');
+  };
+
+  // --- Omitted for brevity: years and courses arrays are the same ---
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 5 }, (_, i) => currentYear + 3 - i);
+  const courses = ['B.Tech', 'BE', 'M.Tech', 'ME', 'BCA', 'MCA', 'BSc', 'MSc'];
 
   return (
-    <Box sx={{ bgcolor: '#f5f5f5', minHeight: '100vh', p: { xs: 2, md: 4 } }}>
-      <Paper 
+    <Container maxWidth="sm">
+      <Box
         component="form"
         onSubmit={handleSubmit}
-        sx={{ 
-          maxWidth: 700, 
-          mx: 'auto', 
-          p: { xs: 2, sm: 4 }, 
-          borderRadius: 4,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+        sx={{
+          mt: 4, mb: 4, p: 3, boxShadow: 3, borderRadius: 2,
+          display: 'flex', flexDirection: 'column', gap: 2.5,
         }}
       >
-        <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#43A047', mb: 1 }}>
-          Apply for {internship.title}
-        </Typography>
-        <Typography variant="h6" color="text.secondary" sx={{ mb: 4 }}>
-          at {internship.company}
+        <Typography variant="h4" component="h1" gutterBottom align="center">
+          Internship Application
         </Typography>
 
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <TextField fullWidth required label="Full Name" name="name" value={formData.name} onChange={handleChange} error={!!errors.name} helperText={errors.name} InputProps={{startAdornment: (<InputAdornment position="start"><PersonIcon /></InputAdornment>)}} />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField fullWidth required label="Email Address" name="email" type="email" value={formData.email} onChange={handleChange} error={!!errors.email} helperText={errors.email} InputProps={{startAdornment: (<InputAdornment position="start"><EmailIcon /></InputAdornment>)}} />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField fullWidth label="Phone Number" name="phone" value={formData.phone} onChange={handleChange} InputProps={{startAdornment: (<InputAdornment position="start"><PhoneIcon /></InputAdornment>)}} />
-          </Grid>
-          <Grid item xs={12}>
-            <input
-              type="file"
-              onChange={handleFileChange}
-              ref={fileInputRef}
-              style={{ display: 'none' }}
-              accept=".pdf,.doc,.docx"
-            />
+        {/* --- Personal & Academic Details --- */}
+        <TextField label="Full Name" name="fullName" value={formData.fullName} onChange={handleChange} required fullWidth />
+        <TextField label="Email" type="email" name="email" value={formData.email} onChange={handleChange} required fullWidth />
+        <TextField label="Phone Number" type="tel" name="phone" value={formData.phone} onChange={handleChange} required fullWidth />
+        <FormControl fullWidth required>
+          <InputLabel id="passing-year-select-label">Passing Year</InputLabel>
+          <Select labelId="passing-year-select-label" name="passingYear" value={formData.passingYear} label="Passing Year" onChange={handleChange}>
+            {years.map((year) => <MenuItem key={year} value={year}>{year}</MenuItem>)}
+          </Select>
+        </FormControl>
+        <FormControl fullWidth required>
+          <InputLabel id="course-select-label">Course</InputLabel>
+          <Select labelId="course-select-label" name="course" value={formData.course} label="Course" onChange={handleChange}>
+            {courses.map((course) => <MenuItem key={course} value={course}>{course}</MenuItem>)}
+          </Select>
+        </FormControl>
+        <TextField label="UG CGPA (On a scale of 10)" name="ugCgpa" type="number" value={formData.ugCgpa} onChange={handleChange} required fullWidth InputProps={{ inputProps: { min: 0, max: 10, step: "0.01" } }} />
+
+        {/* --- Experience Section --- */}
+        <FormControl required>
+            <FormLabel id="internship-experience-radio-group-label">Is this your first time applying for an internship?</FormLabel>
+            <RadioGroup row name="internshipExperience" value={formData.internshipExperience} onChange={handleChange}>
+                <FormControlLabel value="Yes" control={<Radio />} label="Yes, first time" />
+                <FormControlLabel value="No" control={<Radio />} label="No, I have prior experience" />
+            </RadioGroup>
+        </FormControl>
+
+        {/* NEW: Resume Upload Field */}
+        <Box sx={{ border: '1px dashed grey', p: 2, borderRadius: 1 }}>
+            <FormLabel sx={{ mb: 1, display: 'block' }}>Upload Your Resume</FormLabel>
             <Button
-              variant="outlined"
-              onClick={() => fileInputRef.current.click()}
-              startIcon={<CloudUploadIcon />}
-              fullWidth
-              sx={{ py: 1.5, textTransform: 'none' }}
+                component="label" // Makes the button act as a label for the hidden input
+                variant="outlined"
+                startIcon={<CloudUploadIcon />}
             >
-              Upload Resume*
+                Choose File
+                <input
+                    type="file"
+                    hidden
+                    onChange={handleFileChange}
+                    accept=".pdf,.doc,.docx" // Specify accepted file types
+                    required
+                />
             </Button>
-            {resume && <Typography sx={{ mt: 1, textAlign: 'center' }}>{resume.name}</Typography>}
-            {errors.resume && <Typography color="error" variant="caption" sx={{ mt: 1, textAlign: 'center', display: 'block' }}>{errors.resume}</Typography>}
-          </Grid>
-        </Grid>
-
-        <Box sx={{ mt: 4, position: 'relative' }}>
-          <Button 
-            type="submit" 
-            variant="contained" 
-            fullWidth 
-            disabled={loading}
-            sx={{ 
-              py: 1.5, 
-              fontWeight: 'bold', 
-              backgroundColor: "#43A047", 
-              "&:hover": { backgroundColor: "#388E3C" } 
-            }}
-          >
-            {loading ? <CircularProgress size={24} color="inherit" /> : 'Submit Application'}
-          </Button>
+            {/* Display the selected file name */}
+            {formData.resume && (
+                <Typography variant="body2" sx={{ mt: 1 }}>
+                    Selected: {formData.resume.name}
+                </Typography>
+            )}
         </Box>
-      </Paper>
-      <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={() => setOpenSnackbar(false)}>
-        <Alert onClose={() => setOpenSnackbar(false)} severity="success" variant="filled" sx={{ width: '100%' }}>
-          Application Submitted Successfully! Redirecting...
-        </Alert>
-      </Snackbar>
-    </Box>
+        
+        {/* --- Submit Button --- */}
+        <Button type="submit" variant="contained" color="primary" size="large" sx={{ marginTop: 2 }}>
+          Submit Application
+        </Button>
+      </Box>
+    </Container>
   );
 }

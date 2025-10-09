@@ -18,49 +18,56 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const internships = [
-  {
-    title: "Software Development Intern",
-    company: "TechCorp Solutions",
-    duration: "3 Months",
-    location: "Remote",
-    skill: "Web Dev",
+  { 
+    id: 1, 
+    title: "Software Development Intern", 
+    company: "TechCorp Solutions", 
+    duration: "3 Months", 
+    location: "Remote", 
+    skill: "Web Dev" 
   },
-  {
-    title: "Machine Learning Intern",
-    company: "AI Innovators",
-    duration: "6 Months",
-    location: "On-site",
-    skill: "ML",
+  { 
+    id: 2, 
+    title: "Machine Learning Intern", 
+    company: "AI Innovators", 
+    duration: "6 Months", 
+    location: "On-site", 
+    skill: "ML" 
   },
-  {
-    title: "Data Analyst Intern",
-    company: "DataWorks",
-    duration: "4 Months",
-    location: "Remote",
-    skill: "Data Science",
+  { 
+    id: 3, 
+    title: "Data Analyst Intern", 
+    company: "DataWorks", 
+    duration: "4 Months", 
+    location: "Remote", 
+    skill: "Data Science" 
   },
-  {
-    title: "Frontend Developer Intern",
-    company: "WebFlow Inc.",
-    duration: "3 Months",
-    location: "On-site",
-    skill: "Web Dev",
+  { 
+    id: 4, 
+    title: "Frontend Developer Intern", 
+    company: "WebFlow Inc.", 
+    duration: "3 Months", 
+    location: "On-site", 
+    skill: "Web Dev" 
   },
-  {
-    title: "AI Research Intern",
-    company: "Future AI",
-    duration: "6 Months",
-    location: "Remote",
-    skill: "ML",
+  { 
+    id: 5, 
+    title: "AI Research Intern", 
+    company: "Future AI", 
+    duration: "6 Months", 
+    location: "Remote", 
+    skill: "ML" 
   },
-  {
-    title: "Business Intelligence Intern",
-    company: "DataWorks",
-    duration: "4 Months",
-    location: "On-site",
-    skill: "Data Science",
+  { 
+    id: 6, 
+    title: "Business Intelligence Intern", 
+    company: "DataWorks", 
+    duration: "4 Months", 
+    location: "On-site", 
+    skill: "Data Science" 
   },
 ];
+
 
 const skillCategories = ["All", "Web Dev", "ML", "Data Science"];
 
@@ -106,7 +113,6 @@ export default function InternshipsPage() {
   };
 
   const handleAddInternship = () => navigate("/add-Internship");
-  const HandleApplyBtn = () => navigate("/Apply-Internship");
 
   const filteredInternships = internships.filter((internship) => {
     if (currentFilter === "All") {
@@ -213,7 +219,7 @@ export default function InternshipsPage() {
                 <Button
                   variant="contained"
                   sx={{ backgroundColor: "#43A047", "&:hover": { backgroundColor: "#66BB6A" }, mt: "auto" }}
-                  onClick={HandleApplyBtn}
+                  onClick={() => navigate(`/apply/${internship.id}`)}
                 >
                   Apply Now
                 </Button>

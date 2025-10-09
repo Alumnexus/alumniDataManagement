@@ -18,6 +18,8 @@ import EventsPage from "./Components/EngageHub/EventPage";
 import AddInternForm from "./Components/AddForm/AddInternForm"
 import AlumniDirectoryPage from "./Components/EngageHub/AlumniDirectoryPage";
 import InternApplicationForm from './Components/EngageHub/ReletedForm/InternApplicationForm';
+import JobApplicationForm from './Components/EngageHub/ReletedForm/JobApplicationForm';
+//import Temp from './Components/EngageHub/ReletedForm/temp';
 
 
 function App() {
@@ -35,7 +37,8 @@ function App() {
         <Route path="/alumni-directory" element={<AlumniDirectoryPage />} />
         <Route path="/add-event" element={<AddEventForm />} />
         <Route path="/add-internship" element={<AddInternForm />}/>
-        <Route path='/Apply-Internship' element={<InternApplicationForm/>}/>
+        <Route path="/apply/:internshipId" element={<InternApplicationForm />} />
+        <Route path="/apply/job/:jobId" element={<JobApplicationForm />} />
       </Routes>
       <Footer/>
     </div>
