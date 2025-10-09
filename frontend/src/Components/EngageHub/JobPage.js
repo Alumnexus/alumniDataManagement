@@ -41,11 +41,14 @@ export default function JobPage() {
     handleMenuClose();
   };
   
-  // **MODIFIED**: This handler now navigates to the apply page
-  // It also passes the entire 'job' object in the route's state
+  // **FIXED**: This handler now correctly passes the job data to the next page.
   const handleApplyClick = (job) => {
-    navigate(`/apply/job/${job.id}`);
+    navigate(`/apply/job/${job.id}`, { state: { job } });
   };
+
+  const handleAddBtn =()=>{
+    navigate('/add/a/new/job');
+  }
 
   const filteredJobs = jobs.filter((job) => {
     if (currentFilter === "All") return true;
@@ -70,7 +73,18 @@ export default function JobPage() {
               </MenuItem>
             ))}
           </Menu>
-          <Button variant="contained" startIcon={<AddIcon />} sx={{ backgroundColor: "#FF6F00", "&:hover": { backgroundColor: "#FF8F00" }, textTransform: "none", fontWeight: "bold", py: 1, px: 2 }} onClick={() => alert("Redirect to Add Job form")}>
+          <Button 
+           variant="contained" 
+           startIcon={<AddIcon />} 
+           sx={{ 
+             backgroundColor: "#FF6F00", 
+             "&:hover": { backgroundColor: "#FF8F00" }, 
+             textTransform: "none", 
+             fontWeight: "bold", 
+             py: 1, 
+             px: 2 
+             }} 
+            onClick={() => handleAddBtn()}>
             Add Job
           </Button>
         </Stack>
@@ -90,7 +104,6 @@ export default function JobPage() {
                   {job.type} — {job.skill}
                 </Typography>
                 <Button variant="contained" sx={{ backgroundColor: "#FF6F00", "&:hover": { backgroundColor: "#FF8F00" } }}
-                  // **MODIFIED**: This now calls the correct handler
                   onClick={() => handleApplyClick(job)}
                 >
                   Apply Now
