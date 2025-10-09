@@ -7,10 +7,14 @@ import {
   Stack,
   IconButton,
 } from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { useNavigate } from "react-router-dom";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 export default function AddEventForm({ onSubmit }) {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -18,12 +22,12 @@ export default function AddEventForm({ onSubmit }) {
     location: "",
     maxAttendees: "",
     createdBy: "",
-    eventFile: null, // File stored here
+    eventFile: null,
   });
 
   const [preview, setPreview] = useState(null);
 
-  // Handle text input changes
+  // Handle text input
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -58,23 +62,16 @@ export default function AddEventForm({ onSubmit }) {
     setPreview(null);
   };
 
-  // Handle form submission
+  // Submit form
   const handleSubmit = (e) => {
     e.preventDefault();
-
     if (!formData.title || !formData.date || !formData.createdBy || !formData.eventFile) {
       alert("Title, Date, Created By, and Event Application File are required!");
       return;
     }
 
     const dataToSend = new FormData();
-    dataToSend.append("title", formData.title);
-    dataToSend.append("description", formData.description);
-    dataToSend.append("date", formData.date);
-    dataToSend.append("location", formData.location);
-    dataToSend.append("maxAttendees", formData.maxAttendees);
-    dataToSend.append("createdBy", formData.createdBy);
-    dataToSend.append("eventFile", formData.eventFile);
+    Object.entries(formData).forEach(([key, value]) => dataToSend.append(key, value));
 
     console.log("Form Submitted:", Object.fromEntries(dataToSend));
     if (onSubmit) onSubmit(dataToSend);
@@ -83,6 +80,7 @@ export default function AddEventForm({ onSubmit }) {
   return (
     <Box
       sx={{
+        position: "relative",
         maxWidth: "650px",
         mx: "auto",
         mt: 4,
@@ -92,72 +90,41 @@ export default function AddEventForm({ onSubmit }) {
         backgroundColor: "#fff",
       }}
     >
-      <Typography variant="h4" sx={{ mb: 3, color: "#1976D2", textAlign: "center" }}>
+      {/* 🔙 Back Arrow Button */}
+      <IconButton
+        onClick={() => navigate("/events")}
+        sx={{
+          position: "absolute",
+          top: 16,
+          left: 16,
+          color: "#1976D2",
+          backgroundColor: "#fff",
+          boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+          "&:hover": { backgroundColor: "rgba(25,118,210,0.1)" },
+        }}
+      > 
+        <ArrowBackIcon />
+      </IconButton>
+
+      <Typography
+        variant="h4"
+        sx={{ mb: 3, color: "#1976D2", textAlign: "center" }}
+      >
         Add New Event
       </Typography>
 
       <form onSubmit={handleSubmit}>
         <Stack spacing={3}>
-          <TextField
-            label="Title"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            required
-            fullWidth
-          />
+          <TextField label="Title" name="title" value={formData.title} onChange={handleChange} required fullWidth />
+          <TextField label="Description" name="description" value={formData.description} onChange={handleChange} multiline rows={3} fullWidth />
+          <TextField label="Date & Time" name="date" type="datetime-local" value={formData.date} onChange={handleChange} required InputLabelProps={{ shrink: true }} fullWidth />
+          <TextField label="Location" name="location" value={formData.location} onChange={handleChange} fullWidth />
+          <TextField label="Maximum Attendees" name="maxAttendees" type="number" value={formData.maxAttendees} onChange={handleChange} fullWidth />
+          <TextField label="Created By (User ID)" name="createdBy" value={formData.createdBy} onChange={handleChange} required fullWidth />
 
-          <TextField
-            label="Description"
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            multiline
-            rows={3}
-            fullWidth
-          />
-
-          <TextField
-            label="Date & Time"
-            name="date"
-            type="datetime-local"
-            value={formData.date}
-            onChange={handleChange}
-            required
-            InputLabelProps={{ shrink: true }}
-            fullWidth
-          />
-
-          <TextField
-            label="Location"
-            name="location"
-            value={formData.location}
-            onChange={handleChange}
-            fullWidth
-          />
-
-          <TextField
-            label="Maximum Attendees"
-            name="maxAttendees"
-            type="number"
-            value={formData.maxAttendees}
-            onChange={handleChange}
-            fullWidth
-          />
-
-          <TextField
-            label="Created By (User ID)"
-            name="createdBy"
-            value={formData.createdBy}
-            onChange={handleChange}
-            required
-            fullWidth
-          />
-
-          {/* Stylish File Upload */}
+          {/* File Upload */}
           <Box>
             <Typography sx={{ mb: 1, fontWeight: 500 }}>Event Application (PDF or Image) *</Typography>
-
             <Box
               sx={{
                 border: "2px dashed #1976D2",
@@ -189,7 +156,6 @@ export default function AddEventForm({ onSubmit }) {
                 style={{ display: "none" }}
               />
 
-              {/* Remove Button */}
               {formData.eventFile && (
                 <IconButton
                   onClick={(e) => {
@@ -209,7 +175,6 @@ export default function AddEventForm({ onSubmit }) {
               )}
             </Box>
 
-            {/* Preview for images */}
             {preview && (
               <Box sx={{ mt: 2 }}>
                 <Typography variant="body2" sx={{ mb: 1 }}>

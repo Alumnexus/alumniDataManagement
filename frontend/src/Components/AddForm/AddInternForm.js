@@ -7,6 +7,7 @@ import {
   Paper,
   Typography,
   InputAdornment,
+  IconButton,
 } from "@mui/material";
 import WorkIcon from "@mui/icons-material/Work";
 import BusinessIcon from "@mui/icons-material/Business";
@@ -15,8 +16,8 @@ import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import ScheduleIcon from "@mui/icons-material/Schedule";
 import TitleIcon from "@mui/icons-material/Title";
 import { useNavigate } from "react-router-dom";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
-// Initial form state
 const initialState = {
   title: "",
   company: "",
@@ -53,20 +54,16 @@ export default function AddInternForm() {
       setErrors(formErrors);
       return;
     }
-    
+
     console.log("Submitting Internship Data:", formData);
-    
-    // **KEY CHANGE**: Navigate with a success message in the state
-    navigate("/internships", { 
-      state: { successMessage: "Internship posted successfully!" } 
+    navigate("/internships", {
+      state: { successMessage: "Internship posted successfully!" },
     });
   };
 
   const handleCancel = () => {
     setFormData(initialState);
     setErrors({});
-    // Optionally navigate back if needed
-    // navigate(-1); 
   };
 
   return (
@@ -90,13 +87,9 @@ export default function AddInternForm() {
           overflow: "hidden",
           bgcolor: "#fff",
           boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-          transition: "box-shadow 0.3s ease-in-out",
-          "&:hover": {
-            boxShadow: "0 16px 40px rgba(0,0,0,0.15)",
-          },
         }}
       >
-        {/* Header */}
+        {/* Header with Back Button inside */}
         <Box
           sx={{
             display: "flex",
@@ -108,6 +101,20 @@ export default function AddInternForm() {
             textShadow: "1px 1px 3px rgba(0,0,0,0.2)",
           }}
         >
+          {/* 🔙 Back Arrow (inside header, not overlapping) */}
+          <IconButton
+            onClick={() => navigate("/internships")}
+            sx={{
+              color: "#fff",
+              mr: 1,
+              "&:hover": {
+                backgroundColor: "rgba(255,255,255,0.2)",
+              },
+            }}
+          >
+            <ArrowBackIcon />
+          </IconButton>
+
           <WorkIcon sx={{ fontSize: 32 }} />
           <Typography variant="h5" sx={{ fontWeight: "bold" }}>
             Post a New Internship
@@ -119,8 +126,8 @@ export default function AddInternForm() {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
             Fill out the details below. Fields marked with an asterisk (*) are required.
           </Typography>
+
           <Grid container spacing={3}>
-            {/* All TextFields remain the same */}
             <Grid item xs={12} sm={6}>
               <TextField
                 required
@@ -141,6 +148,7 @@ export default function AddInternForm() {
                 }}
               />
             </Grid>
+
             <Grid item xs={12} sm={6}>
               <TextField
                 required
@@ -161,6 +169,7 @@ export default function AddInternForm() {
                 }}
               />
             </Grid>
+
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
@@ -179,6 +188,7 @@ export default function AddInternForm() {
                 }}
               />
             </Grid>
+
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
@@ -197,6 +207,7 @@ export default function AddInternForm() {
                 }}
               />
             </Grid>
+
             <Grid item xs={12}>
               <TextField
                 fullWidth
@@ -215,6 +226,7 @@ export default function AddInternForm() {
                 }}
               />
             </Grid>
+
             <Grid item xs={12}>
               <TextField
                 required
@@ -238,14 +250,28 @@ export default function AddInternForm() {
               onClick={handleCancel}
               variant="outlined"
               color="secondary"
-              sx={{ textTransform: "none", fontWeight: "bold", px: 3, py: 1.2, borderRadius: 2 }}
+              sx={{
+                textTransform: "none",
+                fontWeight: "bold",
+                px: 3,
+                py: 1.2,
+                borderRadius: 2,
+              }}
             >
               Cancel
             </Button>
             <Button
               onClick={handleSubmit}
               variant="contained"
-              sx={{ textTransform: "none", fontWeight: "bold", px: 4, py: 1.2, borderRadius: 2, bgcolor: "#1976d2", "&:hover": { bgcolor: "#115293" }}}
+              sx={{
+                textTransform: "none",
+                fontWeight: "bold",
+                px: 4,
+                py: 1.2,
+                borderRadius: 2,
+                bgcolor: "#1976d2",
+                "&:hover": { bgcolor: "#115293" },
+              }}
             >
               Post Internship
             </Button>
