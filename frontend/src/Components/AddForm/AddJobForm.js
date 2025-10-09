@@ -8,7 +8,9 @@ import {
   Typography,
   InputAdornment,
   Paper,
+  IconButton,
 } from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
@@ -18,7 +20,7 @@ import GroupIcon from '@mui/icons-material/Group';
 import { useNavigate } from "react-router-dom";
 
 export default function AddJobForm() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     jobTitle: '',
     companyName: '',
@@ -55,17 +57,31 @@ export default function AddJobForm() {
             sx={{
               display: 'flex',
               alignItems: 'center',
-              gap: 2,
+              justifyContent: 'space-between',
               py: 2.5,
               px: 3,
               background: 'linear-gradient(90deg, #1976d2 0%, #42a5f5 100%)',
               color: 'white',
             }}
           >
-            <BusinessCenterIcon sx={{ fontSize: 32 }} />
-            <Typography variant="h5" fontWeight="bold">
-              Post a New Job
-            </Typography>
+            {/* Left Section: Back Button */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <IconButton
+                onClick={() => navigate('/jobs')}
+                sx={{
+                  color: 'white',
+                  backgroundColor: 'rgba(255,255,255,0.15)',
+                  '&:hover': { backgroundColor: 'rgba(255,255,255,0.25)' },
+                }}
+              >
+                <ArrowBackIcon />
+              </IconButton>
+
+              <BusinessCenterIcon sx={{ fontSize: 32 }} />
+              <Typography variant="h5" fontWeight="bold">
+                Post a New Job
+              </Typography>
+            </Box>
           </Box>
 
           {/* FORM */}
@@ -185,7 +201,7 @@ export default function AddJobForm() {
                 />
               </Grid>
 
-              {/* Row 4 - Single full width */}
+              {/* Row 4 */}
               <Grid item xs={12}>
                 <TextField
                   name="jobDescription"
@@ -218,6 +234,7 @@ export default function AddJobForm() {
                   px: 3,
                   py: 1,
                 }}
+                onClick={() => navigate('/jobs')}
               >
                 Cancel
               </Button>
