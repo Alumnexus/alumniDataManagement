@@ -6,17 +6,25 @@ import {
   Button,
   Typography,
   Stack,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  FormLabel,
 } from "@mui/material";
-import { QRCodeCanvas } from "qrcode.react"; // ✅ Correct import
+import { QRCodeCanvas } from "qrcode.react";
 
 export default function EventRegisterForm({ onClose }) {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     whatsapp: "",
+    course: "",
+    organization: "",
+    idType: "registration",
+    idValue: "",
   });
 
-  const [qrData, setQrData] = useState(""); // store generated QR data
+  const [qrData, setQrData] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -24,33 +32,44 @@ export default function EventRegisterForm({ onClose }) {
   };
 
   const handleSubmit = (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  // Validation for empty fields
-  if (!formData.name || !formData.email || !formData.whatsapp) {
-    alert("All fields are required!");
-    return;
-  }
+    if (
+      !formData.name ||
+      !formData.email ||
+      !formData.whatsapp ||
+      !formData.course ||
+      !formData.organization ||
+      !formData.idValue
+    ) {
+      alert("All fields are required!");
+      return;
+    }
 
-  // WhatsApp number must be exactly 10 digits
-  const whatsappRegex = /^[0-9]{10}$/;
-  if (!whatsappRegex.test(formData.whatsapp)) {
-    alert("WhatsApp number must be exactly 10 digits!");
-    return;
-  }
+    const whatsappRegex = /^[0-9]{10}$/;
+    if (!whatsappRegex.test(formData.whatsapp)) {
+      alert("WhatsApp number must be exactly 10 digits!");
+      return;
+    }
 
-  // Generate unique QR code data
-  const uniqueData = {
-    registrationId: Date.now(),
-    name: formData.name,
-    email: formData.email,
-    whatsapp: formData.whatsapp,
+    if (formData.idType === "registration" && !/^[0-9]+$/.test(formData.idValue)) {
+      alert("Registration number must be numeric!");
+      return;
+    }
+
+    if (formData.idType === "enrollment" && !/^[A-Za-z0-9\\/\\/-]+$/.test(formData.idValue)) {
+      alert("Enrollment number can only include letters, numbers, and the characters \\ / -");
+      return;
+    }
+
+    const uniqueData = {
+      registrationId: Date.now(),
+      ...formData,
+    };
+
+    setQrData(JSON.stringify(uniqueData));
+    console.log("Generated QR Data:", uniqueData);
   };
-
-  setQrData(JSON.stringify(uniqueData));
-  console.log("Generated QR Data:", uniqueData);
-};
-
 
   const handleDownloadQR = () => {
     const canvas = document.querySelector("canvas");
@@ -64,20 +83,37 @@ export default function EventRegisterForm({ onClose }) {
   return (
     <Box
       sx={{
-        width: 400,
+        width: "90%",
+        maxWidth: 420,
+        maxHeight: "85vh", // limit height for scrollability
+        overflowY: "auto", // enable vertical scroll
         p: 4,
         backgroundColor: "#fff",
         borderRadius: 3,
         boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
         mx: "auto",
+        mt: 4,
         textAlign: "center",
+        scrollbarWidth: "thin",
+        "&::-webkit-scrollbar": {
+          width: "6px",
+        },
+        "&::-webkit-scrollbar-thumb": {
+          backgroundColor: "#1976D2",
+          borderRadius: "10px",
+        },
       }}
     >
       {!qrData ? (
         <>
           <Typography
             variant="h5"
-            sx={{ mb: 3, color: "#1976D2", textAlign: "center", fontWeight: "bold" }}
+            sx={{
+              mb: 3,
+              color: "#1976D2",
+              textAlign: "center",
+              fontWeight: "bold",
+            }}
           >
             Event Registration
           </Typography>
@@ -102,23 +138,86 @@ export default function EventRegisterForm({ onClose }) {
                 fullWidth
               />
 
+              <TextField
+                label="WhatsApp Number"
+                name="whatsapp"
+                type="number"
+                value={formData.whatsapp}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value.length <= 10) {
+                    setFormData((prev) => ({ ...prev, whatsapp: value }));
+                  }
+                }}
+                required
+                fullWidth
+                helperText="Enter a valid 10-digit WhatsApp number"
+              />
 
-            <TextField
-              label="WhatsApp Number"
-              name="whatsapp"
-              type="number"
-              value={formData.whatsapp}
-              onChange={(e) => {
-                const value = e.target.value;
-                // Allow only up to 10 digits
-                if (value.length <= 10) {
-                  setFormData((prev) => ({ ...prev, whatsapp: value }));
+              <TextField
+                label="Course"
+                name="course"
+                value={formData.course}
+                onChange={handleChange}
+                required
+                fullWidth
+              />
+
+              <TextField
+                label="Organization Name"
+                name="organization"
+                value={formData.organization}
+                onChange={handleChange}
+                required
+                fullWidth
+              />
+
+              {/* ID Selection */}
+              <Box textAlign="left">
+                <FormLabel component="legend">Select ID Type</FormLabel>
+                <RadioGroup
+                  row
+                  name="idType"
+                  value={formData.idType}
+                  onChange={(e) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      idType: e.target.value,
+                      idValue: "", // clear input when switching type
+                    }));
+                  }}
+                >
+                  <FormControlLabel
+                    value="registration"
+                    control={<Radio />}
+                    label="Registration Number"
+                  />
+                  <FormControlLabel
+                    value="enrollment"
+                    control={<Radio />}
+                    label="Enrollment Number"
+                  />
+                </RadioGroup>
+              </Box>
+
+              <TextField
+                label={
+                  formData.idType === "registration"
+                    ? "Registration Number"
+                    : "Enrollment Number"
                 }
-              }}
-              required
-              fullWidth
-              helperText="Enter a valid 10-digit WhatsApp number"
-            />
+                name="idValue"
+                type={formData.idType === "registration" ? "number" : "text"}
+                value={formData.idValue}
+                onChange={handleChange}
+                required
+                fullWidth
+                helperText={
+                  formData.idType === "registration"
+                    ? "Enter numeric registration number"
+                    : "Allowed: letters, numbers, \\ / -"
+                }
+              />
 
               <Button
                 type="submit"
@@ -138,7 +237,6 @@ export default function EventRegisterForm({ onClose }) {
           </form>
         </>
       ) : (
-        // QR Code Section
         <Box>
           <Typography variant="h6" sx={{ color: "#1976D2", mb: 2 }}>
             Registration Successful!
@@ -147,7 +245,6 @@ export default function EventRegisterForm({ onClose }) {
             Scan this QR Code to verify your registration.
           </Typography>
 
-          {/* Display QR Code */}
           <QRCodeCanvas value={qrData} size={200} includeMargin={true} />
 
           <Stack spacing={2} sx={{ mt: 3 }}>

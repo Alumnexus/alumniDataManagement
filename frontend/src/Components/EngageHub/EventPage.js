@@ -130,6 +130,8 @@ export default function EventsPage() {
           <MenuItem onClick={() => handleOptionClick("Workshop")}>Workshop</MenuItem>
           <MenuItem onClick={() => handleOptionClick("Fest")}>Fest</MenuItem>
           <MenuItem onClick={() => handleOptionClick("Webinar")}>Webinar</MenuItem>
+          <MenuItem onClick={() => handleOptionClick("Orientation")}>Orientation</MenuItem>
+          <MenuItem onClick={() => handleOptionClick("Other")}>Other</MenuItem>
         </Menu>
 
         {/* Add Event Button */}

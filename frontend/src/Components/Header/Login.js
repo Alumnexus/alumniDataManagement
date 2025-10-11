@@ -9,6 +9,7 @@ import {
   Paper,
   IconButton,
   InputAdornment,
+  Stack,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 
@@ -16,9 +17,11 @@ export default function Login() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    otp: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -32,14 +35,24 @@ export default function Login() {
     setShowPassword((prev) => !prev);
   };
 
+  const handleGetOtp = () => {
+    if (!formData.email) {
+      alert("Please enter your email to get OTP");
+      return;
+    }
+
+    console.log("OTP requested for:", formData.email);
+    alert(`OTP sent to ${formData.email}`);
+    setOtpSent(true);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Form Submitted:", formData);
 
-    // TODO: Add login API call here
-
-    setFormData({ email: "", password: "" });
+    setFormData({ email: "", password: "", otp: "" });
     setShowPassword(false);
+    setOtpSent(false);
   };
 
   return (
@@ -112,14 +125,39 @@ export default function Login() {
             }}
           />
 
+          {/* OTP Field & Button on same line */}
+          <Stack direction="row" spacing={1} alignItems="center">
+            <TextField
+              label="Enter OTP"
+              variant="outlined"
+              name="otp"
+              value={formData.otp}
+              onChange={handleChange}
+              fullWidth
+              disabled={!otpSent}
+              required={otpSent}
+            />
+            <Button
+              type="button"
+              variant="outlined"
+              onClick={handleGetOtp}
+              sx={{
+                textTransform: "none",
+                borderColor: "mediumseagreen",
+                color: "mediumseagreen",
+                "&:hover": { borderColor: "seagreen", backgroundColor: "#f0fff0" },
+              }}
+            >
+              Get OTP
+            </Button>
+          </Stack>
+
           <Button
             type="submit"
             variant="contained"
             sx={{
               backgroundColor: "mediumseagreen",
-              "&:hover": {
-                backgroundColor: "seagreen",
-              },
+              "&:hover": { backgroundColor: "seagreen" },
               padding: "10px",
               fontSize: "16px",
               borderRadius: "8px",
