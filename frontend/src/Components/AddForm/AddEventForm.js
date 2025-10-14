@@ -6,11 +6,16 @@ import {
   Typography,
   Stack,
   IconButton,
+  MenuItem,
 } from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { useNavigate } from "react-router-dom";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 export default function AddEventForm({ onSubmit }) {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -18,18 +23,35 @@ export default function AddEventForm({ onSubmit }) {
     location: "",
     maxAttendees: "",
     createdBy: "",
-    eventFile: null, // File stored here
+    course: "", // ✅ Added
+    organization: "", // ✅ Added
+    category: "",
+    visibility: "",
+    eventFile: null,
   });
 
   const [preview, setPreview] = useState(null);
 
-  // Handle text input changes
+  const categories = [
+    "All Events",
+    "Workshop",
+    "Fest",
+    "Webinar",
+    "Orientation",
+    "Other",
+  ];
+
+  const visibilityOptions = [
+    "Open to All",
+    "Open to all within Organization",
+    "Only within Same Course",
+  ];
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle file upload
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -52,29 +74,31 @@ export default function AddEventForm({ onSubmit }) {
     }
   };
 
-  // Remove uploaded file
   const handleRemoveFile = () => {
     setFormData((prev) => ({ ...prev, eventFile: null }));
     setPreview(null);
   };
 
-  // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    if (!formData.title || !formData.date || !formData.createdBy || !formData.eventFile) {
-      alert("Title, Date, Created By, and Event Application File are required!");
+    if (
+      !formData.title ||
+      !formData.date ||
+      !formData.createdBy ||
+      !formData.course ||
+      !formData.organization ||
+      !formData.eventFile ||
+      !formData.category ||
+      !formData.visibility
+    ) {
+      alert("All required fields must be filled out!");
       return;
     }
 
     const dataToSend = new FormData();
-    dataToSend.append("title", formData.title);
-    dataToSend.append("description", formData.description);
-    dataToSend.append("date", formData.date);
-    dataToSend.append("location", formData.location);
-    dataToSend.append("maxAttendees", formData.maxAttendees);
-    dataToSend.append("createdBy", formData.createdBy);
-    dataToSend.append("eventFile", formData.eventFile);
+    Object.entries(formData).forEach(([key, value]) =>
+      dataToSend.append(key, value)
+    );
 
     console.log("Form Submitted:", Object.fromEntries(dataToSend));
     if (onSubmit) onSubmit(dataToSend);
@@ -83,6 +107,7 @@ export default function AddEventForm({ onSubmit }) {
   return (
     <Box
       sx={{
+        position: "relative",
         maxWidth: "650px",
         mx: "auto",
         mt: 4,
@@ -90,9 +115,30 @@ export default function AddEventForm({ onSubmit }) {
         borderRadius: 3,
         boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
         backgroundColor: "#fff",
+        maxHeight: "90vh",
+        overflowY: "auto", // ✅ makes form scrollable
       }}
     >
-      <Typography variant="h4" sx={{ mb: 3, color: "#1976D2", textAlign: "center" }}>
+      {/* 🔙 Back Arrow Button */}
+      <IconButton
+        onClick={() => navigate("/events")}
+        sx={{
+          position: "absolute",
+          top: 16,
+          left: 16,
+          color: "#1976D2",
+          backgroundColor: "#fff",
+          boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+          "&:hover": { backgroundColor: "rgba(25,118,210,0.1)" },
+        }}
+      >
+        <ArrowBackIcon />
+      </IconButton>
+
+      <Typography
+        variant="h4"
+        sx={{ mb: 3, color: "#1976D2", textAlign: "center" }}
+      >
         Add New Event
       </Typography>
 
@@ -106,7 +152,6 @@ export default function AddEventForm({ onSubmit }) {
             required
             fullWidth
           />
-
           <TextField
             label="Description"
             name="description"
@@ -116,7 +161,6 @@ export default function AddEventForm({ onSubmit }) {
             rows={3}
             fullWidth
           />
-
           <TextField
             label="Date & Time"
             name="date"
@@ -127,7 +171,6 @@ export default function AddEventForm({ onSubmit }) {
             InputLabelProps={{ shrink: true }}
             fullWidth
           />
-
           <TextField
             label="Location"
             name="location"
@@ -135,7 +178,6 @@ export default function AddEventForm({ onSubmit }) {
             onChange={handleChange}
             fullWidth
           />
-
           <TextField
             label="Maximum Attendees"
             name="maxAttendees"
@@ -144,7 +186,6 @@ export default function AddEventForm({ onSubmit }) {
             onChange={handleChange}
             fullWidth
           />
-
           <TextField
             label="Created By (User ID)"
             name="createdBy"
@@ -154,10 +195,64 @@ export default function AddEventForm({ onSubmit }) {
             fullWidth
           />
 
-          {/* Stylish File Upload */}
-          <Box>
-            <Typography sx={{ mb: 1, fontWeight: 500 }}>Event Application (PDF or Image) *</Typography>
+          {/* ✅ Added New Fields */}
+          <TextField
+            label="Course"
+            name="course"
+            value={formData.course}
+            onChange={handleChange}
+            required
+            fullWidth
+          />
 
+          <TextField
+            label="Organization Name"
+            name="organization"
+            value={formData.organization}
+            onChange={handleChange}
+            required
+            fullWidth
+          />
+
+          {/* ✅ Category Dropdown */}
+          <TextField
+            select
+            label="Category"
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+            required
+            fullWidth
+          >
+            {categories.map((cat, index) => (
+              <MenuItem key={index} value={cat}>
+                {cat}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          {/* ✅ Visibility Dropdown */}
+          <TextField
+            select
+            label="Visibility"
+            name="visibility"
+            value={formData.visibility}
+            onChange={handleChange}
+            required
+            fullWidth
+          >
+            {visibilityOptions.map((option, index) => (
+              <MenuItem key={index} value={option}>
+                {option}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          {/* File Upload */}
+          <Box>
+            <Typography sx={{ mb: 1, fontWeight: 500 }}>
+              Event Application (PDF or Image) *
+            </Typography>
             <Box
               sx={{
                 border: "2px dashed #1976D2",
@@ -189,7 +284,6 @@ export default function AddEventForm({ onSubmit }) {
                 style={{ display: "none" }}
               />
 
-              {/* Remove Button */}
               {formData.eventFile && (
                 <IconButton
                   onClick={(e) => {
@@ -209,7 +303,6 @@ export default function AddEventForm({ onSubmit }) {
               )}
             </Box>
 
-            {/* Preview for images */}
             {preview && (
               <Box sx={{ mt: 2 }}>
                 <Typography variant="body2" sx={{ mb: 1 }}>

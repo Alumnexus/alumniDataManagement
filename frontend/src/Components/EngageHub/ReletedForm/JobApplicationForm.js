@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import {
   Container, Box, Typography, TextField, Button,
-  FormControl, FormLabel
+  FormControl, FormLabel, IconButton
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useNavigate } from "react-router-dom"; // ✅ import useNavigate
 
 export default function JobApplicationForm() {
+  const navigate = useNavigate(); // ✅ create navigate function
+
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -41,6 +45,19 @@ export default function JobApplicationForm() {
           mt: 4, mb: 4, p: 3, boxShadow: 3, borderRadius: 2,
           display: 'flex', flexDirection: 'column', gap: 2.5,
       }}>
+        {/* 🔙 Back Arrow Button */}
+        <IconButton
+          onClick={() => navigate('/jobs')}
+          sx={{
+            alignSelf: 'flex-start',
+            color: 'primary.main',
+            backgroundColor: 'rgba(0,0,0,0.05)',
+            '&:hover': { backgroundColor: 'rgba(0,0,0,0.1)' },
+          }}
+        >
+          <ArrowBackIcon />
+        </IconButton>
+
         <Typography variant="h4" component="h1" gutterBottom align="center">
           Job Application
         </Typography>
@@ -51,27 +68,46 @@ export default function JobApplicationForm() {
         <TextField label="Phone Number" type="tel" name="phone" value={formData.phone} onChange={handleChange} required fullWidth />
 
         {/* --- Professional Experience --- */}
-        <TextField label="Years of Experience" name="yearsOfExperience" type="number" value={formData.yearsOfExperience} onChange={handleChange} required fullWidth InputProps={{ inputProps: { min: 0 } }} />
+        <TextField
+          label="Years of Experience"
+          name="yearsOfExperience"
+          type="number"
+          value={formData.yearsOfExperience}
+          onChange={handleChange}
+          required
+          fullWidth
+          InputProps={{ inputProps: { min: 0 } }}
+        />
         <TextField label="Current or Previous Job Title" name="previousJobTitle" value={formData.previousJobTitle} onChange={handleChange} fullWidth />
         <TextField label="Current or Previous Company" name="previousCompany" value={formData.previousCompany} onChange={handleChange} fullWidth />
         <TextField label="Portfolio or LinkedIn URL" name="portfolioUrl" type="url" value={formData.portfolioUrl} onChange={handleChange} fullWidth />
 
         {/* --- Cover Letter --- */}
         <TextField
-            label="Cover Letter" name="coverLetter" value={formData.coverLetter} onChange={handleChange}
-            multiline rows={4} required fullWidth
+          label="Cover Letter"
+          name="coverLetter"
+          value={formData.coverLetter}
+          onChange={handleChange}
+          multiline
+          rows={4}
+          required
+          fullWidth
         />
 
         {/* --- Resume Upload --- */}
         <FormControl required>
-            <FormLabel sx={{ mb: 1, display: 'block' }}>Upload Resume</FormLabel>
-            <Box>
-                <Button component="label" variant="outlined" startIcon={<CloudUploadIcon />}>
-                    Choose File
-                    <input type="file" hidden onChange={handleFileChange} accept=".pdf,.doc,.docx" />
-                </Button>
-                {formData.resume && <Typography variant="body2" sx={{ display: 'inline', ml: 2 }}>{formData.resume.name}</Typography>}
-            </Box>
+          <FormLabel sx={{ mb: 1, display: 'block' }}>Upload Resume</FormLabel>
+          <Box>
+            <Button component="label" variant="outlined" startIcon={<CloudUploadIcon />}>
+              Choose File
+              <input type="file" hidden onChange={handleFileChange} accept=".pdf,.doc,.docx" />
+            </Button>
+            {formData.resume && (
+              <Typography variant="body2" sx={{ display: 'inline', ml: 2 }}>
+                {formData.resume.name}
+              </Typography>
+            )}
+          </Box>
         </FormControl>
         
         <Button type="submit" variant="contained" color="primary" size="large" sx={{ marginTop: 2 }}>

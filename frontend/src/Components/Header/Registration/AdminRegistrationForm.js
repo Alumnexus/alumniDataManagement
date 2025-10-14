@@ -13,6 +13,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import ReCAPTCHA from "react-google-recaptcha";
 
 const AdminRegistrationForm = () => {
   const [formData, setFormData] = useState({
@@ -27,6 +28,7 @@ const AdminRegistrationForm = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [captchaVerified, setCaptchaVerified] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -36,8 +38,16 @@ const AdminRegistrationForm = () => {
     });
   };
 
+  const handleCaptchaChange = (value) => {
+    setCaptchaVerified(!!value);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!captchaVerified) {
+      alert("Please verify the CAPTCHA.");
+      return;
+    }
     console.log("Admin Registration Data:", formData);
     // TODO: Add API integration
   };
@@ -75,7 +85,6 @@ const AdminRegistrationForm = () => {
             required
           />
 
-          {/* Permission Select */}
           <FormControl fullWidth>
             <InputLabel id="permission-label">Permission</InputLabel>
             <Select
@@ -105,7 +114,6 @@ const AdminRegistrationForm = () => {
             fullWidth
           />
 
-          {/* Password Fields */}
           <TextField
             label="Password"
             name="password"
@@ -139,7 +147,9 @@ const AdminRegistrationForm = () => {
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    onClick={() =>
+                      setShowConfirmPassword(!showConfirmPassword)
+                    }
                     edge="end"
                   >
                     {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
@@ -149,7 +159,13 @@ const AdminRegistrationForm = () => {
             }}
           />
 
-          {/* Buttons */}
+          {/* CAPTCHA */}
+          <ReCAPTCHA
+          /* replace sitekey here */
+            sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" /* it public sitekey */
+            onChange={handleCaptchaChange}
+          />
+
           <Stack direction="row" spacing={2}>
             <Button variant="outlined">Get OTP</Button>
             <Button type="submit" variant="contained" color="success">

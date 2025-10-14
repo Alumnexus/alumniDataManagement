@@ -22,14 +22,18 @@ export default function Footer() {
           spacing={4}
         >
           {/* About Section */}
-          <Box>
+          <Box sx={{ textAlign: "center" }}>
             <Typography variant="h6" sx={{ fontWeight: "bold", mb: 1 }}>
               Alumnexus
             </Typography>
-            <Typography variant="body2" sx={{ maxWidth: 300 }}>
+            <Typography
+              variant="body2"
+              sx={{ maxWidth: 300, mx: "auto" }} // centers the paragraph
+            >
               Optimized to manage alumni and student data efficiently within the same institute, enabling better engagement, mentorship, and networking opportunities.
             </Typography>
           </Box>
+
 
           {/* Quick Links */}
           <Box>
@@ -49,7 +53,7 @@ export default function Footer() {
             <Typography variant="h6" sx={{ fontWeight: "bold", mb: 1 }}>
               Connect with us
             </Typography>
-            <Stack direction="row" spacing={1}>
+            <Stack direction="row" spacing={1} sx={{ justifyContent: "center" }}>
               <IconButton href="#" sx={{ color: "#ffffff" }}>
                 <YouTube />
               </IconButton>

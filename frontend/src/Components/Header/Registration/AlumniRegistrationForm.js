@@ -11,6 +11,7 @@ import {
   InputAdornment,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import ReCAPTCHA from "react-google-recaptcha";
 
 const AlumniRegistrationForm = () => {
   const [formData, setFormData] = useState({
@@ -30,6 +31,7 @@ const AlumniRegistrationForm = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [captchaVerified, setCaptchaVerified] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -39,8 +41,16 @@ const AlumniRegistrationForm = () => {
     });
   };
 
+  const handleCaptchaChange = (value) => {
+    setCaptchaVerified(!!value);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!captchaVerified) {
+      alert("Please verify the CAPTCHA.");
+      return;
+    }
     console.log("Alumni Registration Data:", formData);
     // TODO: Add API call
   };
@@ -172,7 +182,9 @@ const AlumniRegistrationForm = () => {
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    onClick={() =>
+                      setShowConfirmPassword(!showConfirmPassword)
+                    }
                     edge="end"
                   >
                     {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
@@ -181,6 +193,13 @@ const AlumniRegistrationForm = () => {
               ),
             }}
           />
+
+          {/* CAPTCHA */}
+          <ReCAPTCHA
+            sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
+            onChange={handleCaptchaChange}
+          />
+
           <Stack direction="row" spacing={2}>
             <Button variant="outlined">Get OTP</Button>
             <Button type="submit" variant="contained" color="success">
