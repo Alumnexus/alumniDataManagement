@@ -110,7 +110,6 @@ export default function EventRegisterForm({ onClose }) {
               value={formData.whatsapp}
               onChange={(e) => {
                 const value = e.target.value;
-                // Allow only up to 10 digits
                 if (value.length <= 10) {
                   setFormData((prev) => ({ ...prev, whatsapp: value }));
                 }
