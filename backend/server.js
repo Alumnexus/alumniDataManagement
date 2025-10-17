@@ -4,6 +4,7 @@ import { config } from 'dotenv';
 import cors from 'cors';
 import multer from 'multer';
 import Event from './models/Event.js'; // Correctly import the Event model
+import { v2 as cloudinary } from 'cloudinary';
 import { storage } from './cloudConfig.js'; // Import storage configuration
 
 // Load environment variables
@@ -29,6 +30,11 @@ async function connectDB() {
 }
 connectDB();
 
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,       // Correct key is 'cloud_name'
+  api_key: process.env.CLOUD_API_KEY,      // Correct key is 'api_key'
+  api_secret: process.env.CLOUD_API_SECRET, // Correct key is 'api_secret'
+});
 // Multer setup using the imported storage configuration
 const upload = multer({ storage });
 
