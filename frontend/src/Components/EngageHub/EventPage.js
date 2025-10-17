@@ -1,5 +1,6 @@
 // src/components/EventsPage.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -15,6 +16,7 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import { useNavigate } from "react-router-dom";
 import EventRegisterForm from "./ReletedForm/EventRegisterForm"; // Import the form
+import AlertMessage from "../Utils/AlertMessage";
 
 // Events Data with categories
 const events = [
@@ -64,8 +66,20 @@ export default function EventsPage() {
   const [anchorEl, setAnchorEl] = useState(null);
   const [openRegisterModal, setOpenRegisterModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [notification, setNotification] = useState({ message: '', type: 'info' });
   const open = Boolean(anchorEl);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Check if we were redirected here with a message
+    if (location.state?.message) {
+      setNotification({
+        message: location.state.message,
+        type: location.state.type || 'success',
+      });
+    }
+  }, [location.state]);
 
   // Menu logic
   const handleMenuClick = (event) => setAnchorEl(event.currentTarget);
@@ -87,6 +101,13 @@ export default function EventsPage() {
       : events.filter((event) => event.category === selectedCategory);
 
   return (
+    <>
+    <AlertMessage
+        message={notification.message}
+        type={notification.type}
+        onClose={() => setNotification({ message: '', type: 'info' })}
+      />
+
     <Box
       sx={{
         px: { xs: 2, md: 6 },
@@ -229,5 +250,6 @@ export default function EventsPage() {
         <EventRegisterForm onClose={() => setOpenRegisterModal(false)} />
       </Modal>
     </Box>
+    </>
   );
 }

@@ -12,6 +12,8 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate } from "react-router-dom";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteIcon from "@mui/icons-material/Delete";
+import axios from 'axios';
+import AlertMessage from "../Utils/AlertMessage";
 
 export default function AddEventForm({ onSubmit }) {
   const navigate = useNavigate();
@@ -28,6 +30,11 @@ export default function AddEventForm({ onSubmit }) {
     category: "",
     visibility: "",
     eventFile: null,
+  });
+
+  const [notification, setNotification] = useState({
+    message: '',
+    type: 'info', // can be 'success', 'error', 'info', 'warning'
   });
 
   const [preview, setPreview] = useState(null);
@@ -79,32 +86,90 @@ export default function AddEventForm({ onSubmit }) {
     setPreview(null);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (
-      !formData.title ||
-      !formData.date ||
-      !formData.createdBy ||
-      !formData.course ||
-      !formData.organization ||
-      !formData.eventFile ||
-      !formData.category ||
-      !formData.visibility
-    ) {
-      alert("All required fields must be filled out!");
-      return;
-    }
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+  // Validation logic remains the same and is correct
+  if (
+    !formData.title ||
+    !formData.date ||
+    !formData.createdBy ||
+    !formData.course ||
+    !formData.organization ||
+    !formData.eventFile ||
+    !formData.category ||
+    !formData.visibility
+  ) {
+    alert("All required fields must be filled out!");
+    return;
+  }
 
-    const dataToSend = new FormData();
-    Object.entries(formData).forEach(([key, value]) =>
-      dataToSend.append(key, value)
+  // ✅ This part is correct: you are building the FormData object
+  const dataToSend = new FormData();
+  Object.entries(formData).forEach(([key, value]) => {
+    // Make sure not to append a null file
+    if (value !== null) {
+      dataToSend.append(key, value);
+    }
+  });
+
+  try {
+    // ❗️ CRITICAL CHANGE: Send 'dataToSend', not a plain JS object.
+    const response = await axios.post(
+      'http://localhost:5000/save/event/data', 
+      dataToSend
+      // No need to set headers, axios does it automatically for FormData
     );
 
-    console.log("Form Submitted:", Object.fromEntries(dataToSend));
-    if (onSubmit) onSubmit(dataToSend);
-  };
+    setTimeout(() => {
+      navigate('/events', { 
+        state: { 
+          message: 'Event created successfully!',
+          type: 'success'
+        } 
+      }); // Or navigate('/') or wherever you want to go
+    }, 1500);
+
+    // ✨ IMPROVEMENT: Better form reset logic
+    setFormData({
+      title: '', 
+      description: '', 
+      date: '', 
+      location: '', 
+      maxAttendees: '', 
+      createdBy: '', 
+      course: '', 
+      organization: '', 
+      category: '', 
+      visibility: '', 
+      eventFile: null, // Reset file to null
+    });
+    setPreview(null); // Clear the image preview
+    
+    // Also clear the file input element itself
+    if (document.getElementById("eventFileInput")) {
+      document.getElementById("eventFileInput").value = "";
+    }
+
+  } catch (err) {
+    // console.error("Error submitting form:", err);
+    // Provide a more specific error if the backend sends one
+    const errorMessage = err.response?.data?.error || 'An error occurred. Please try again.';    
+      // ✅ 3. SET THE ERROR NOTIFICATION (INSTEAD OF alert())
+    setNotification({
+      message: errorMessage,
+      type: 'error',
+    });
+  }
+};
 
   return (
+    <>
+    <></>
+    <AlertMessage
+      message={notification.message}
+      type={notification.type}
+      onClose={() => setNotification({ message: '', type: 'info' })}
+    />
     <Box
       sx={{
         position: "relative",
@@ -134,7 +199,6 @@ export default function AddEventForm({ onSubmit }) {
       >
         <ArrowBackIcon />
       </IconButton>
-
       <Typography
         variant="h4"
         sx={{ mb: 3, color: "#1976D2", textAlign: "center" }}
@@ -338,5 +402,6 @@ export default function AddEventForm({ onSubmit }) {
         </Stack>
       </form>
     </Box>
+    </>
   );
 }

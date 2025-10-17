@@ -31,7 +31,7 @@ export default function EventRegisterForm({ onClose }) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
 
     if (
@@ -85,8 +85,8 @@ export default function EventRegisterForm({ onClose }) {
       sx={{
         width: "90%",
         maxWidth: 420,
-        maxHeight: "85vh", // limit height for scrollability
-        overflowY: "auto", // enable vertical scroll
+        maxHeight: "85vh",
+        overflowY: "auto",
         p: 4,
         backgroundColor: "#fff",
         borderRadius: 3,
@@ -137,7 +137,6 @@ export default function EventRegisterForm({ onClose }) {
                 required
                 fullWidth
               />
-
               <TextField
                 label="WhatsApp Number"
                 name="whatsapp"
@@ -153,18 +152,6 @@ export default function EventRegisterForm({ onClose }) {
                 fullWidth
                 helperText="Enter a valid 10-digit WhatsApp number"
               />
-
-<<<<<<< HEAD
-            <TextField
-              label="WhatsApp Number"
-              name="whatsapp"
-              type="number"
-              value={formData.whatsapp}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (value.length <= 10) {
-                  setFormData((prev) => ({ ...prev, whatsapp: value }));
-=======
               <TextField
                 label="Course"
                 name="course"
@@ -173,7 +160,6 @@ export default function EventRegisterForm({ onClose }) {
                 required
                 fullWidth
               />
-
               <TextField
                 label="Organization Name"
                 name="organization"
@@ -182,8 +168,6 @@ export default function EventRegisterForm({ onClose }) {
                 required
                 fullWidth
               />
-
-              {/* ID Selection */}
               <Box textAlign="left">
                 <FormLabel component="legend">Select ID Type</FormLabel>
                 <RadioGroup
@@ -194,7 +178,7 @@ export default function EventRegisterForm({ onClose }) {
                     setFormData((prev) => ({
                       ...prev,
                       idType: e.target.value,
-                      idValue: "", // clear input when switching type
+                      idValue: "",
                     }));
                   }}
                 >
@@ -210,13 +194,11 @@ export default function EventRegisterForm({ onClose }) {
                   />
                 </RadioGroup>
               </Box>
-
               <TextField
                 label={
                   formData.idType === "registration"
                     ? "Registration Number"
                     : "Enrollment Number"
->>>>>>> f3f3e2012604b3902ded867cd26550057603a01c
                 }
                 name="idValue"
                 type={formData.idType === "registration" ? "number" : "text"}
@@ -230,7 +212,6 @@ export default function EventRegisterForm({ onClose }) {
                     : "Allowed: letters, numbers, \\ / -"
                 }
               />
-
               <Button
                 type="submit"
                 variant="contained"
@@ -256,9 +237,7 @@ export default function EventRegisterForm({ onClose }) {
           <Typography variant="body2" sx={{ mb: 2 }}>
             Scan this QR Code to verify your registration.
           </Typography>
-
           <QRCodeCanvas value={qrData} size={200} includeMargin={true} />
-
           <Stack spacing={2} sx={{ mt: 3 }}>
             <Button
               variant="outlined"

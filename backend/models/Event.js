@@ -1,53 +1,79 @@
-// backend/models/Event.js
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const eventSchema = new mongoose.Schema({
-  title: { 
-    type: String, 
-    required: true 
+  title: {
+    type: String,
+    required: true,
+    trim: true,
   },
-
-  description: { 
-    type: String 
+  description: {
+    type: String,
+    trim: true,
   },
-
-  date: { 
-    type: Date, 
-    required: true 
-  },
-
-  location: { 
-    type: String 
-  },
-
-  maxAttendees: { 
-    type: Number 
-  },
-
-  attendees: [
-    { 
-      type: mongoose.Schema.Types.ObjectId, 
-      ref: 'User' 
-    }
-  ],
-
-  createdBy: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User', 
-    required: true 
-  },
-
-  expiresAt: {
+  date: {
     type: Date,
-    default: function () {
-      return new Date(this.date.getTime() + 7 * 24 * 60 * 60 * 1000); // TTL: 7 days after event
-    },
     required: true,
   },
-  
-}, { timestamps: true });
+  location: {
+    type: String,
+    trim: true,
+  },
+  maxAttendees: {
+    type: Number,
+    default: 0,
+  },
+  // createdBy: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: 'User',
+  //   required: true,
+  // },
+  createdBy: {
+    type: String,     // Changed from: mongoose.Schema.Types.ObjectId
+    required: true,
+    // The 'ref' property is removed as it only works with ObjectId
+  },
+  course: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  organization: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  category: {
+    type: String,
+    enum: [
+      'All Events',
+      'Workshop',
+      'Fest',
+      'Webinar',
+      'Orientation',
+      'Other',
+    ],
+    required: true,
+  },
+  visibility: {
+    type: String,
+    enum: [
+      'Open to All',
+      'Open to all within Organization',
+      'Only within Same Course',
+    ],
+    required: true,
+  },
+  eventFileUrl: {
+    type: String,
+    required: true,
+  },
+  expiresAt: {
+    type: Date,
+    default: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+    index: { expires: 0 }, // TTL index
+  },
+}, {
+  timestamps: true,
+});
 
-// TTL index to auto-delete expired events
-eventSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
-
-module.exports = mongoose.model('Event', eventSchema);
+export default mongoose.model('Event', eventSchema);
