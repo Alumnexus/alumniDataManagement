@@ -167,7 +167,6 @@ const AdminRegistrationForm = () => {
           />
 
           <Stack direction="row" spacing={2}>
-            <Button variant="outlined">Get OTP</Button>
             <Button type="submit" variant="contained" color="success">
               Sign Up
             </Button>
