@@ -35,7 +35,7 @@ const eventSchema = new mongoose.Schema({
   course: {
     type: String,
     required: true,
-    trim: true,
+    trim: true, 
   },
   organization: {
     type: String,

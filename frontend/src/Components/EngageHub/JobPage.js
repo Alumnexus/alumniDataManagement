@@ -14,24 +14,19 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { useNavigate } from "react-router-dom";
-
-const jobs = [
-    { id: 1, title: "Frontend Developer", company: "TechCorp Solutions", location: "Remote", salary: "₹6,00,000 - ₹8,00,000 / year", type: "Full-Time", skill: "Web Development" },
-    { id: 2, title: "Backend Engineer", company: "CodeMasters Inc.", location: "Bangalore, India", salary: "₹7,50,000 - ₹10,00,000 / year", type: "Full-Time", skill: "Web Development" },
-    { id: 3, title: "Data Scientist", company: "DataWorks", location: "Remote", salary: "₹8,00,000 - ₹12,00,000 / year", type: "Contract", skill: "AI/ML" },
-    { id: 4, title: "UI/UX Designer", company: "Creative Minds", location: "Delhi, India", salary: "₹5,00,000 - ₹7,00,000 / year", type: "Full-Time", skill: "Design" },
-    { id: 5, title: "AI/ML Engineer", company: "NeuroNet Labs", location: "Hyderabad, India", salary: "₹9,00,000 - ₹14,00,000 / year", type: "Full-Time", skill: "AI/ML" },
-    { id: 6, title: "DevOps Engineer", company: "Cloudify Tech", location: "Pune, India", salary: "₹8,00,000 - ₹11,00,000 / year", type: "Full-Time", skill: "Cloud & DevOps" },
-    { id: 7, title: "Mobile App Developer", company: "AppStudio Pro", location: "Mumbai, India", salary: "₹6,50,000 - ₹9,00,000 / year", type: "Full-Time", skill: "Mobile Development" },
-    { id: 8, title: "Cybersecurity Analyst", company: "SecureNet Solutions", location: "Chennai, India", salary: "₹7,00,000 - ₹10,00,000 / year", type: "Full-Time", skill: "Cybersecurity" },
-];
-
+import { backendAPI } from "../middleware";
+import { useEffect } from "react";
+import axios from "axios";
+import { useLocation } from "react-router-dom";
+  
 const skillCategories = ["All", "Web Development", "AI/ML", "Design", "Cloud & DevOps", "Mobile Development", "Cybersecurity"];
 
 export default function JobPage() {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const [currentFilter, setCurrentFilter] = useState("All");
+  const [jobs, setJobs] = useState([]);
+  const location = useLocation();
 
   const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
@@ -40,6 +35,20 @@ export default function JobPage() {
     setCurrentFilter(skill);
     handleMenuClose();
   };
+
+  const findinternData = async() =>{
+    try{ 
+      const api = backendAPI();
+      const res = await axios.get(`${api}/get/job/data`)
+      setJobs(res.data.data)
+    }catch(err){
+      console.log("Some error is happend", err);
+    }
+  }
+
+  useEffect(() => {
+    findinternData()
+  }, [location.state]);
   
   // **FIXED**: This handler now correctly passes the job data to the next page.
   const handleApplyClick = (job) => {

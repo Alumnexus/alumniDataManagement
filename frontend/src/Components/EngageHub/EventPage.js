@@ -17,6 +17,8 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import EventRegisterForm from "./ReletedForm/EventRegisterForm";
 import AlertMessage from "../Utils/AlertMessage";
+import axios from "axios";
+import { backendAPI } from "../middleware.js";
 
 export default function EventsPage() {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -32,23 +34,30 @@ export default function EventsPage() {
   const location = useLocation();
 
   // Fetch events from the database when the component mounts
+
+  const findEventData = async () => {
+    try {
+      setLoading(true); // Ensure loading is true when starting
+      const api = backendAPI();
+      const res = await axios.get(`${api}/api/get/event`);
+      
+      // Assuming res.data.data is the array of events
+      setEvents(res.data.data || []); 
+      setError(null);
+    } catch (err) {
+      console.error("Fetch error:", err);
+      setError("Failed to load events. Please try again later.");
+    } finally {
+      setLoading(false); // Stop the spinner regardless of success or failure
+    }
+  };
+
   useEffect(() => {
-    fetch('http://localhost:5000/api/events')
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return res.json();
-      })
-      .then((data) => {
-        setEvents(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error('Error fetching events:', err);
-        setError('Failed to load events. Please try again later.');
-        setLoading(false);
-      });
+    findEventData();
+  }, []);
+
+  useEffect(() => {
+    findEventData()
   }, []);
 
   useEffect(() => {

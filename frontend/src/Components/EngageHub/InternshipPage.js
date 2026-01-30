@@ -16,66 +16,17 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
+import {backendAPI} from '../middleware.js';
 
-const internships = [
-  { 
-    id: 1, 
-    title: "Software Development Intern", 
-    company: "TechCorp Solutions", 
-    duration: "3 Months", 
-    location: "Remote", 
-    skill: "Web Dev" 
-  },
-  { 
-    id: 2, 
-    title: "Machine Learning Intern", 
-    company: "AI Innovators", 
-    duration: "6 Months", 
-    location: "On-site", 
-    skill: "ML" 
-  },
-  { 
-    id: 3, 
-    title: "Data Analyst Intern", 
-    company: "DataWorks", 
-    duration: "4 Months", 
-    location: "Remote", 
-    skill: "Data Science" 
-  },
-  { 
-    id: 4, 
-    title: "Frontend Developer Intern", 
-    company: "WebFlow Inc.", 
-    duration: "3 Months", 
-    location: "On-site", 
-    skill: "Web Dev" 
-  },
-  { 
-    id: 5, 
-    title: "AI Research Intern", 
-    company: "Future AI", 
-    duration: "6 Months", 
-    location: "Remote", 
-    skill: "ML" 
-  },
-  { 
-    id: 6, 
-    title: "Business Intelligence Intern", 
-    company: "DataWorks", 
-    duration: "4 Months", 
-    location: "On-site", 
-    skill: "Data Science" 
-  },
-];
-
-
-const skillCategories = ["All", "Web Dev", "ML", "Data Science"];
+const skillCategories = ["All", "Web Dev", "ML", "Software Eng."];
 
 export default function InternshipsPage() {
   const [anchorEl, setAnchorEl] = useState(null);
   const [currentFilter, setCurrentFilter] = useState("All");
   const navigate = useNavigate();
   const location = useLocation();
+  const [internships, setInternship] = useState([]);
 
   // --- MERGED LOGIC: State for the success snackbar ---
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -90,6 +41,20 @@ export default function InternshipsPage() {
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state, navigate, location.pathname]);
+
+  const findinternData = async() =>{
+    try{ 
+      const api = backendAPI();
+      const res = await axios.get(`${api}/get/intern/data`)
+      setInternship(res.data.data)
+    }catch(err){
+      console.log("Some error is happend", err);
+    }
+  }
+
+  useEffect(() => {
+    findinternData()
+  }, [location.state]);
 
 
   const handleMenuOpen = (event) => {
@@ -118,7 +83,7 @@ export default function InternshipsPage() {
     if (currentFilter === "All") {
       return true;
     }
-    return internship.skill === currentFilter;
+    return internship.skills === currentFilter;
   });
 
   return (
@@ -248,4 +213,3 @@ export default function InternshipsPage() {
     </Box>
   );
 }
-

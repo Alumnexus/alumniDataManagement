@@ -1,5 +1,6 @@
 // backend/models/Internship.js
-const mongoose = require('mongoose');
+// const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
 const internshipSchema = new mongoose.Schema({
   title: { 
@@ -10,6 +11,11 @@ const internshipSchema = new mongoose.Schema({
   description: { 
     type: String, 
     required: true 
+  },
+
+  skills: {
+    type: String,
+    required: true
   },
 
   company: { 
@@ -56,4 +62,6 @@ const internshipSchema = new mongoose.Schema({
 // TTL index to auto-delete expired internships
 internshipSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
-module.exports = mongoose.model('Internship', internshipSchema);
+const Internship = mongoose.model('Internship', internshipSchema);
+
+export default Internship
