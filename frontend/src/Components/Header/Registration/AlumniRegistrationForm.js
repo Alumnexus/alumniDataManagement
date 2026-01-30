@@ -9,15 +9,48 @@ import {
   Stack,
   IconButton,
   InputAdornment,
+  MenuItem,
+  CircularProgress,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import ReCAPTCHA from "react-google-recaptcha";
 import axios from "axios";
 import { backendAPI } from "../../middleware";
-import { CircularProgress } from "@mui/material";
+
+/* 🔽 Dropdown Options */
+const degreeOptions = [
+  "B.Tech",
+  "B.E",
+  "B.Sc",
+  "BCA",
+  "M.Tech",
+  "M.E",
+  "M.Sc",
+  "MCA",
+  "MBA",
+  "PhD",
+];
+
+const departmentOptions = [
+  "Computer Science",
+  "Information Technology",
+  "Electronics",
+  "Electrical",
+  "Mechanical",
+  "Civil",
+  "Chemical",
+  "Biotechnology",
+  "Mathematics",
+  "Physics",
+  "Management",
+];
 
 const AlumniRegistrationForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [captchaVerified, setCaptchaVerified] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -25,7 +58,7 @@ const AlumniRegistrationForm = () => {
     department: "",
     graduationYear: "",
     currentJob: "",
-    title: "",   
+    title: "",
     company: "",
     linkedIn: "",
     isMentor: false,
@@ -33,110 +66,86 @@ const AlumniRegistrationForm = () => {
     confirmPassword: "",
   });
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [captchaVerified, setCaptchaVerified] = useState(false);
-
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: type === "checkbox" ? checked : value,
-    });
+    }));
   };
 
   const handleCaptchaChange = (value) => {
     setCaptchaVerified(!!value);
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  // 1️⃣ Basic validation
-  if (!captchaVerified) {
-    alert("Please verify the CAPTCHA.");
-    return;
-  }
+    if (!captchaVerified) {
+      alert("Please verify the CAPTCHA.");
+      return;
+    }
 
-  if (formData.password !== formData.confirmPassword) {
-    alert("Passwords do not match.");
-    return;
-  }
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords do not match.");
+      return;
+    }
 
-  setIsSubmitting(true);
+    setIsSubmitting(true);
 
-  try {
-    const api = backendAPI();
+    try {
+      const api = backendAPI();
 
-    // 2️⃣ Prepare payload (exclude confirmPassword)
-    const payload = {
-      username: formData.username,
-      email: formData.email,
-      degree: formData.degree,
-      department: formData.department,
-      graduationYear: formData.graduationYear,
-      currentJob: formData.currentJob,
-      title: formData.title,
-      company: formData.company,
-      linkedIn: formData.linkedIn,
-      isMentor: formData.isMentor,
-      password: formData.password
-    };
+      const payload = {
+        username: formData.username,
+        email: formData.email,
+        degree: formData.degree,
+        department: formData.department,
+        graduationYear: formData.graduationYear,
+        currentJob: formData.currentJob,
+        title: formData.title,
+        company: formData.company,
+        linkedIn: formData.linkedIn,
+        isMentor: formData.isMentor,
+        password: formData.password,
+      };
 
-    // 3️⃣ API call
-    const res = await axios.post(`${api}/api/alumni/register`, payload, {
-      headers: {
-        "Content-Type": "application/json"
+      const res = await axios.post(`${api}/api/alumni/register`, payload, {
+        headers: { "Content-Type": "application/json" },
+      });
+
+      alert("Registration successful! Please verify your email.");
+
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+
+      setFormData({
+        username: "",
+        email: "",
+        degree: "",
+        department: "",
+        graduationYear: "",
+        currentJob: "",
+        title: "",
+        company: "",
+        linkedIn: "",
+        isMentor: false,
+        password: "",
+        confirmPassword: "",
+      });
+    } catch (error) {
+      if (error.response) {
+        alert(error.response.data.message || "Registration failed");
+      } else {
+        alert("Server not reachable. Please try again later.");
       }
-    });
-
-    // 4️⃣ Success handling
-    alert("Registration successful! Please verify your email.");
-
-    console.log("Server Response:", res.data);
-    localStorage.setItem("token", res.data.token);
-
-    // Save user info (optional)
-    localStorage.setItem("user", JSON.stringify(res.data.user));
-
-    // Optional: reset form
-    setFormData({
-      username: "",
-      email: "",
-      degree: "",
-      department: "",
-      graduationYear: "",
-      currentJob: "",
-      title: "",
-      company: "",
-      linkedIn: "",
-      isMentor: false,
-      password: "",
-      confirmPassword: ""
-    });
-  } catch (error) {
-    console.error("Registration error:", error);
-
-    if (error.response) {
-      alert(error.response.data.message || "Registration failed");
-    } else {
-      alert("Server not reachable. Please try again later.");
+    } finally {
+      setIsSubmitting(false);
     }
-  }finally {
-      setIsSubmitting(false); // Stop loading
-    }
-};
-
+  };
 
   return (
-    <Box
-      sx={{
-        border: "1px solid #ccc",
-        padding: 3,
-        borderRadius: 2,
-        overflow: "auto",
-      }}
-    >
+    <Box sx={{ border: "1px solid #ccc", p: 3, borderRadius: 2 }}>
       <Typography variant="h5" gutterBottom>
         Alumni Registration
       </Typography>
@@ -148,42 +157,63 @@ const handleSubmit = async (e) => {
             name="username"
             value={formData.username}
             onChange={handleChange}
-            fullWidth
             required
+            fullWidth
           />
+
           <TextField
             label="Email ID"
-            type="email"
             name="email"
+            type="email"
             value={formData.email}
             onChange={handleChange}
-            fullWidth
             required
+            fullWidth
           />
+
+          {/* DEGREE DROPDOWN */}
           <TextField
+            select
             label="Degree"
             name="degree"
             value={formData.degree}
             onChange={handleChange}
-            fullWidth
             required
-          />
+            fullWidth
+          >
+            {degreeOptions.map((degree) => (
+              <MenuItem key={degree} value={degree}>
+                {degree}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          {/* DEPARTMENT DROPDOWN */}
           <TextField
+            select
             label="Department"
             name="department"
             value={formData.department}
             onChange={handleChange}
-            fullWidth
             required
-          />
+            fullWidth
+          >
+            {departmentOptions.map((dept) => (
+              <MenuItem key={dept} value={dept}>
+                {dept}
+              </MenuItem>
+            ))}
+          </TextField>
+
           <TextField
             label="Graduation Year"
             name="graduationYear"
             value={formData.graduationYear}
             onChange={handleChange}
-            fullWidth
             required
+            fullWidth
           />
+
           <TextField
             label="Current Job"
             name="currentJob"
@@ -191,13 +221,15 @@ const handleSubmit = async (e) => {
             onChange={handleChange}
             fullWidth
           />
+
           <TextField
-            label="Title (of job)"
+            label="Job Title"
             name="title"
             value={formData.title}
             onChange={handleChange}
             fullWidth
           />
+
           <TextField
             label="Company"
             name="company"
@@ -205,6 +237,7 @@ const handleSubmit = async (e) => {
             onChange={handleChange}
             fullWidth
           />
+
           <TextField
             label="LinkedIn"
             name="linkedIn"
@@ -212,6 +245,7 @@ const handleSubmit = async (e) => {
             onChange={handleChange}
             fullWidth
           />
+
           <FormControlLabel
             control={
               <Checkbox
@@ -220,37 +254,38 @@ const handleSubmit = async (e) => {
                 onChange={handleChange}
               />
             }
-            label="Is Mentor?"
+            label="Available as Mentor"
           />
+
+          {/* PASSWORD */}
           <TextField
             label="Password"
             name="password"
             type={showPassword ? "text" : "password"}
             value={formData.password}
             onChange={handleChange}
-            fullWidth
             required
+            fullWidth
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowPassword(!showPassword)}
-                    edge="end"
-                  >
+                  <IconButton onClick={() => setShowPassword(!showPassword)}>
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
                 </InputAdornment>
               ),
             }}
           />
+
+          {/* CONFIRM PASSWORD */}
           <TextField
             label="Confirm Password"
             name="confirmPassword"
             type={showConfirmPassword ? "text" : "password"}
             value={formData.confirmPassword}
             onChange={handleChange}
-            fullWidth
             required
+            fullWidth
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
@@ -258,7 +293,6 @@ const handleSubmit = async (e) => {
                     onClick={() =>
                       setShowConfirmPassword(!showConfirmPassword)
                     }
-                    edge="end"
                   >
                     {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
@@ -267,17 +301,19 @@ const handleSubmit = async (e) => {
             }}
           />
 
-          {/* CAPTCHA */}
           <ReCAPTCHA
             sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
             onChange={handleCaptchaChange}
           />
 
-          <Stack direction="row" spacing={2}>
-            <Button type="submit" variant="contained" color="success">
-              Sign Up
-            </Button>
-          </Stack>
+          <Button
+            type="submit"
+            variant="contained"
+            color="success"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? <CircularProgress size={24} /> : "Sign Up"}
+          </Button>
         </Stack>
       </Box>
     </Box>
