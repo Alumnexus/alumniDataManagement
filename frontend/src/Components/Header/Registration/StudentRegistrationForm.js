@@ -7,9 +7,37 @@ import {
   Stack,
   IconButton,
   InputAdornment,
+  MenuItem,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import ReCAPTCHA from "react-google-recaptcha";
+
+/* Dropdown options */
+const degreeOptions = [
+  "B.Tech",
+  "B.E",
+  "B.Sc",
+  "BCA",
+  "M.Tech",
+  "M.E",
+  "M.Sc",
+  "MCA",
+  "MBA",
+];
+
+const departmentOptions = [
+  "Computer Science",
+  "Information Technology",
+  "Electronics",
+  "Electrical",
+  "Mechanical",
+  "Civil",
+  "Chemical",
+  "Biotechnology",
+  "Mathematics",
+  "Physics",
+  "Management",
+];
 
 const StudentRegistrationForm = () => {
   const [formData, setFormData] = useState({
@@ -30,10 +58,10 @@ const StudentRegistrationForm = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
-    });
+    }));
   };
 
   const handleCaptchaChange = (value) => {
@@ -42,12 +70,19 @@ const StudentRegistrationForm = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     if (!captchaVerified) {
       alert("Please verify the CAPTCHA.");
       return;
     }
+
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords do not match.");
+      return;
+    }
+
     console.log("Student Registration Data:", formData);
-    // TODO: Add API integration here
+    // TODO: API integration
   };
 
   return (
@@ -56,7 +91,6 @@ const StudentRegistrationForm = () => {
         border: "1px solid #ccc",
         padding: 3,
         borderRadius: 2,
-        overflow: "auto",
       }}
     >
       <Typography variant="h5" gutterBottom>
@@ -73,6 +107,7 @@ const StudentRegistrationForm = () => {
             fullWidth
             required
           />
+
           <TextField
             label="Email ID"
             type="email"
@@ -82,22 +117,41 @@ const StudentRegistrationForm = () => {
             fullWidth
             required
           />
+
+          {/* DEGREE DROPDOWN */}
           <TextField
+            select
             label="Degree"
             name="degree"
             value={formData.degree}
             onChange={handleChange}
             fullWidth
             required
-          />
+          >
+            {degreeOptions.map((degree) => (
+              <MenuItem key={degree} value={degree}>
+                {degree}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          {/* DEPARTMENT DROPDOWN */}
           <TextField
+            select
             label="Department"
             name="department"
             value={formData.department}
             onChange={handleChange}
             fullWidth
             required
-          />
+          >
+            {departmentOptions.map((dept) => (
+              <MenuItem key={dept} value={dept}>
+                {dept}
+              </MenuItem>
+            ))}
+          </TextField>
+
           <TextField
             label="Graduation Year"
             name="graduationYear"
@@ -106,6 +160,7 @@ const StudentRegistrationForm = () => {
             fullWidth
             required
           />
+
           <TextField
             label="LinkedIn"
             name="linkedIn"
@@ -113,6 +168,7 @@ const StudentRegistrationForm = () => {
             onChange={handleChange}
             fullWidth
           />
+
           <TextField
             label="Enrollment No."
             name="enrollmentNo"
@@ -121,6 +177,7 @@ const StudentRegistrationForm = () => {
             fullWidth
             required
           />
+
           <TextField
             label="Password"
             name="password"
@@ -132,16 +189,14 @@ const StudentRegistrationForm = () => {
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowPassword(!showPassword)}
-                    edge="end"
-                  >
+                  <IconButton onClick={() => setShowPassword(!showPassword)}>
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
                 </InputAdornment>
               ),
             }}
           />
+
           <TextField
             label="Confirm Password"
             name="confirmPassword"
@@ -157,7 +212,6 @@ const StudentRegistrationForm = () => {
                     onClick={() =>
                       setShowConfirmPassword(!showConfirmPassword)
                     }
-                    edge="end"
                   >
                     {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
@@ -166,18 +220,14 @@ const StudentRegistrationForm = () => {
             }}
           />
 
-          {/* CAPTCHA */}
           <ReCAPTCHA
             sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
             onChange={handleCaptchaChange}
           />
 
-          <Stack direction="row" spacing={2}>
-
-            <Button type="submit" variant="contained" color="success">
-              Sign Up
-            </Button>
-          </Stack>
+          <Button type="submit" variant="contained" color="success">
+            Sign Up
+          </Button>
         </Stack>
       </Box>
     </Box>
