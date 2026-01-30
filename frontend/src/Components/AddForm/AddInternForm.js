@@ -15,13 +15,14 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import ScheduleIcon from "@mui/icons-material/Schedule";
 import TitleIcon from "@mui/icons-material/Title";
-import { useNavigate } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { useNavigate } from "react-router-dom";
 
 const initialState = {
   title: "",
   company: "",
   description: "",
+  skills: "",
   location: "",
   stipend: "",
   duration: "",
@@ -44,11 +45,13 @@ export default function AddInternForm() {
     const newErrors = {};
     if (!formData.title.trim()) newErrors.title = "Internship title is required.";
     if (!formData.company.trim()) newErrors.company = "Company name is required.";
+    if (!formData.skills.trim()) newErrors.skills = "Skills are required.";
     if (!formData.description.trim()) newErrors.description = "Job description is required.";
     return newErrors;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = (e) => {
+    e.preventDefault();
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
@@ -56,6 +59,10 @@ export default function AddInternForm() {
     }
 
     console.log("Submitting Internship Data:", formData);
+
+    // Backend call will go here later
+    // axios.post("/api/internships", formData)
+
     navigate("/internships", {
       state: { successMessage: "Internship posted successfully!" },
     });
@@ -80,16 +87,13 @@ export default function AddInternForm() {
       <Paper
         elevation={8}
         sx={{
-          p: 0,
           maxWidth: 700,
           width: "100%",
           borderRadius: 4,
           overflow: "hidden",
-          bgcolor: "#fff",
-          boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
         }}
       >
-        {/* Header with Back Button inside */}
+        {/* Header */}
         <Box
           sx={{
             display: "flex",
@@ -98,32 +102,29 @@ export default function AddInternForm() {
             background: "linear-gradient(90deg, #1976d2 0%, #42a5f5 100%)",
             color: "#fff",
             p: 3,
-            textShadow: "1px 1px 3px rgba(0,0,0,0.2)",
           }}
         >
-          {/* 🔙 Back Arrow (inside header, not overlapping) */}
           <IconButton
             onClick={() => navigate("/internships")}
             sx={{
-                  color: 'white',
-                  backgroundColor: 'rgba(255,255,255,0.15)',
-                  '&:hover': { backgroundColor: 'rgba(255,255,255,0.25)'
-              },
+              color: "white",
+              backgroundColor: "rgba(255,255,255,0.15)",
+              "&:hover": { backgroundColor: "rgba(255,255,255,0.25)" },
             }}
           >
             <ArrowBackIcon />
           </IconButton>
 
           <WorkIcon sx={{ fontSize: 32 }} />
-          <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+          <Typography variant="h5" fontWeight="bold">
             Post a New Internship
           </Typography>
         </Box>
 
-        {/* Form Content */}
-        <Box component="form" sx={{ p: 4 }} noValidate autoComplete="off">
+        {/* Form */}
+        <Box component="form" onSubmit={handleSubmit} sx={{ p: 4 }} noValidate>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Fill out the details below. Fields marked with an asterisk (*) are required.
+            Fields marked with * are required.
           </Typography>
 
           <Grid container spacing={3}>
@@ -135,7 +136,6 @@ export default function AddInternForm() {
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
-                variant="outlined"
                 error={!!errors.title}
                 helperText={errors.title}
                 InputProps={{
@@ -156,7 +156,6 @@ export default function AddInternForm() {
                 name="company"
                 value={formData.company}
                 onChange={handleChange}
-                variant="outlined"
                 error={!!errors.company}
                 helperText={errors.company}
                 InputProps={{
@@ -169,15 +168,34 @@ export default function AddInternForm() {
               />
             </Grid>
 
+            <Grid item xs={12}>
+              <TextField
+                required
+                fullWidth
+                label="Required Skills"
+                name="skills"
+                placeholder="e.g., React, Node.js, MongoDB"
+                value={formData.skills}
+                onChange={handleChange}
+                error={!!errors.skills}
+                helperText={errors.skills}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <WorkIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
                 label="Location"
                 name="location"
-                placeholder="e.g., Remote, New York"
                 value={formData.location}
                 onChange={handleChange}
-                variant="outlined"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -193,10 +211,8 @@ export default function AddInternForm() {
                 fullWidth
                 label="Stipend"
                 name="stipend"
-                placeholder="e.g., $1000/month"
                 value={formData.stipend}
                 onChange={handleChange}
-                variant="outlined"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -212,10 +228,8 @@ export default function AddInternForm() {
                 fullWidth
                 label="Duration"
                 name="duration"
-                placeholder="e.g., 3 Months"
                 value={formData.duration}
                 onChange={handleChange}
-                variant="outlined"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -236,42 +250,18 @@ export default function AddInternForm() {
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                variant="outlined"
                 error={!!errors.description}
                 helperText={errors.description}
               />
             </Grid>
           </Grid>
 
-          {/* Buttons */}
+          {/* Actions */}
           <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}>
-            <Button
-              onClick={handleCancel}
-              variant="outlined"
-              color="secondary"
-              sx={{
-                textTransform: "none",
-                fontWeight: "bold",
-                px: 3,
-                py: 1.2,
-                borderRadius: 2,
-              }}
-            >
+            <Button variant="outlined" color="secondary" onClick={handleCancel}>
               Cancel
             </Button>
-            <Button
-              onClick={handleSubmit}
-              variant="contained"
-              sx={{
-                textTransform: "none",
-                fontWeight: "bold",
-                px: 4,
-                py: 1.2,
-                borderRadius: 2,
-                bgcolor: "#1976d2",
-                "&:hover": { bgcolor: "#115293" },
-              }}
-            >
+            <Button type="submit" variant="contained">
               Post Internship
             </Button>
           </Box>
