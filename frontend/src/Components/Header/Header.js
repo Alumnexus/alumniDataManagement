@@ -17,6 +17,7 @@ import {
   useTheme,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
+import HomeIcon from "@mui/icons-material/Home";
 
 
 export default function Header() {
@@ -95,32 +96,82 @@ export default function Header() {
             </>
           ) : (
             <Box sx={{ display: "flex", gap: 2 }}>
+             <Button
+  component={Link}
+  to="/"
+  startIcon={<HomeIcon />}
+  variant="contained"
+  sx={{
+    background: "linear-gradient(135deg, #00B0FF, #2979FF)",
+    color: "#fff",
+    fontWeight: "bold",
+    px: 3.5,
+    py: 1,
+    borderRadius: "999px",
+    textTransform: "none",
+    letterSpacing: "0.5px",
+    boxShadow: "0 0 12px rgba(41,121,255,0.6)",
+    animation: "pulse 2s infinite",
+    transition: "all 0.3s ease",
+    "&:hover": {
+      background: "linear-gradient(135deg, #1565C0, #1E88E5)",
+      boxShadow: "0 0 20px rgba(21,101,192,0.9)",
+      transform: "translateY(-3px) scale(1.05)",
+      animation: "none",
+    },
+    "@keyframes pulse": {
+      "0%": { boxShadow: "0 0 0 0 rgba(41,121,255,0.6)" },
+      "70%": { boxShadow: "0 0 0 12px rgba(41,121,255,0)" },
+      "100%": { boxShadow: "0 0 0 0 rgba(41,121,255,0)" },
+    },
+  }}
+>
+  Home
+</Button>
+
+
+<Button
+  component={Link}
+  to="/login"
+  variant="contained"
+  sx={{
+    background: "linear-gradient(135deg, #FF6F00, #FF8F00)",
+    color: "#fff",
+    fontWeight: "bold",
+    px: 3,
+    borderRadius: "999px",
+    textTransform: "none",
+    boxShadow: "0 4px 10px rgba(255,111,0,0.5)",
+    "&:hover": {
+      transform: "translateY(-2px)",
+      boxShadow: "0 6px 16px rgba(255,111,0,0.7)",
+    },
+  }}
+>
+  Login
+</Button>
+
               <Button
-                component={Link}
-                to="/login"
-                variant="contained"
-                sx={{
-                  backgroundColor: "#FF6F00",
-                  color: "#fff",
-                  fontWeight: "bold",
-                  "&:hover": { backgroundColor: "#FF8F00" },
-                }}
-              >
-                Login
-              </Button>
-              <Button
-                component={Link}
-                to="/about"
-                variant="contained"
-                sx={{
-                  backgroundColor: "#43A047",
-                  color: "#fff",
-                  fontWeight: "bold",
-                  "&:hover": { backgroundColor: "#66BB6A" },
-                }}
-              >
-                About
-              </Button>
+  component={Link}
+  to="/about"
+  variant="contained"
+  sx={{
+    background: "linear-gradient(135deg, #2E7D32, #66BB6A)",
+    color: "#fff",
+    fontWeight: "bold",
+    px: 3,
+    borderRadius: "999px",
+    textTransform: "none",
+    boxShadow: "0 4px 10px rgba(46,125,50,0.4)",
+    "&:hover": {
+      transform: "translateY(-2px)",
+      boxShadow: "0 6px 16px rgba(46,125,50,0.6)",
+    },
+  }}
+>
+  About
+</Button>
+
             </Box>
           )}
         </Toolbar>

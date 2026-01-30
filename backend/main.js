@@ -2,9 +2,12 @@ import express from 'express';
 import mongoose from 'mongoose';
 import Internship from './models/Internship.js';
 import Event from './models/Event.js';
+import Alumni from './models/Alumni.js';
 import Job from './models/Job.js'
 import 'dotenv/config';
 import cors from "cors";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 const app = express();
 // Middleware
@@ -85,6 +88,89 @@ app.get("/get/job/data", async (req, res) => {
     });
   }
 });
+
+app.post("/api/alumni/register", async (req, res) => {
+  console.log("Hello i am hearing");
+  try {
+    const {
+      username,
+      email,
+      degree,
+      department,
+      graduationYear,
+      currentJob,
+      title,
+      company,
+      linkedIn,
+      isMentor,
+      password
+    } = req.body;
+
+    // 1️⃣ Validate required fields
+    if (!username || !email || !degree || !department || !graduationYear || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "All required fields must be filled"
+      });
+    }
+
+    // 2️⃣ Check if email exists
+    const existingAlumni = await Alumni.findOne({ email });
+    if (existingAlumni) {
+      return res.status(409).json({
+        success: false,
+        message: "Email already registered"
+      });
+    }
+
+    // 3️⃣ Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 4️⃣ Save alumni
+    const alumni = await Alumni.create({
+      username,
+      email,
+      degree,
+      department,
+      graduationYear,
+      currentJob,
+      title,
+      company,
+      linkedIn,
+      isMentor,
+      password: hashedPassword
+    });
+
+    // 5️⃣ Generate JWT (AUTO LOGIN)
+    const token = jwt.sign(
+      { id: alumni._id, role: alumni.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    // 6️⃣ Send response
+    return res.status(201).json({
+      success: true,
+      message: "Registration successful",
+      token,
+      user: {
+        id: alumni._id,
+        username: alumni.username,
+        email: alumni.email,
+        role: alumni.role
+      }
+    });
+
+  } catch (error) {
+    console.error("Register error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
+  }
+});
+
+
 
 const port = process.env.PORT || 8000;
 app.listen(port, () => {
