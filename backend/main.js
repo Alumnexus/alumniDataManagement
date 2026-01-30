@@ -52,7 +52,7 @@ app.get('/get/intern/data', async(req, res)=>{
 app.get("/api/get/event", async (req, res) => {
   try {
     const events = await Event.find({});
-    console.log(events);
+    // console.log(events);
 
     return res.status(200).json({
       message: "Your data is fetched",
@@ -72,7 +72,7 @@ app.get("/api/get/event", async (req, res) => {
 app.get("/get/job/data", async (req, res) => {
   try {
     const jobs = await Job.find({});
-    console.log(jobs);
+    // console.log(jobs);
 
     return res.status(200).json({
       message: "Your data is fetched",
