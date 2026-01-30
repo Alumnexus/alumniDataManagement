@@ -12,8 +12,12 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import ReCAPTCHA from "react-google-recaptcha";
+import axios from "axios";
+import { backendAPI } from "../../middleware";
+import { CircularProgress } from "@mui/material";
 
 const AlumniRegistrationForm = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -21,7 +25,7 @@ const AlumniRegistrationForm = () => {
     department: "",
     graduationYear: "",
     currentJob: "",
-    title: "",
+    title: "",   
     company: "",
     linkedIn: "",
     isMentor: false,
@@ -45,15 +49,84 @@ const AlumniRegistrationForm = () => {
     setCaptchaVerified(!!value);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!captchaVerified) {
-      alert("Please verify the CAPTCHA.");
-      return;
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  // 1️⃣ Basic validation
+  if (!captchaVerified) {
+    alert("Please verify the CAPTCHA.");
+    return;
+  }
+
+  if (formData.password !== formData.confirmPassword) {
+    alert("Passwords do not match.");
+    return;
+  }
+
+  setIsSubmitting(true);
+
+  try {
+    const api = backendAPI();
+
+    // 2️⃣ Prepare payload (exclude confirmPassword)
+    const payload = {
+      username: formData.username,
+      email: formData.email,
+      degree: formData.degree,
+      department: formData.department,
+      graduationYear: formData.graduationYear,
+      currentJob: formData.currentJob,
+      title: formData.title,
+      company: formData.company,
+      linkedIn: formData.linkedIn,
+      isMentor: formData.isMentor,
+      password: formData.password
+    };
+
+    // 3️⃣ API call
+    const res = await axios.post(`${api}/api/alumni/register`, payload, {
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+
+    // 4️⃣ Success handling
+    alert("Registration successful! Please verify your email.");
+
+    console.log("Server Response:", res.data);
+    localStorage.setItem("token", res.data.token);
+
+    // Save user info (optional)
+    localStorage.setItem("user", JSON.stringify(res.data.user));
+
+    // Optional: reset form
+    setFormData({
+      username: "",
+      email: "",
+      degree: "",
+      department: "",
+      graduationYear: "",
+      currentJob: "",
+      title: "",
+      company: "",
+      linkedIn: "",
+      isMentor: false,
+      password: "",
+      confirmPassword: ""
+    });
+  } catch (error) {
+    console.error("Registration error:", error);
+
+    if (error.response) {
+      alert(error.response.data.message || "Registration failed");
+    } else {
+      alert("Server not reachable. Please try again later.");
     }
-    console.log("Alumni Registration Data:", formData);
-    // TODO: Add API call
-  };
+  }finally {
+      setIsSubmitting(false); // Stop loading
+    }
+};
+
 
   return (
     <Box
@@ -201,7 +274,6 @@ const AlumniRegistrationForm = () => {
           />
 
           <Stack direction="row" spacing={2}>
-            <Button variant="outlined">Get OTP</Button>
             <Button type="submit" variant="contained" color="success">
               Sign Up
             </Button>
