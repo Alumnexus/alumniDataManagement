@@ -1,56 +1,65 @@
-// backend/models/Student.js
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
-const studentSchema = new mongoose.Schema({
-  userId: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User', 
-    required: true 
+const studentSchema = new mongoose.Schema(
+  {
+    username: {
+      type: String,
+      required: true
+    },
+
+    email: {
+      type: String,
+      required: true,
+      unique: true
+    },
+
+    enrollmentNumber: {
+      type: String,
+      required: true,
+      unique: true
+    },
+
+    linkedIn: {
+      type: String
+    },
+
+    password: {
+      type: String,
+      required: true
+    },
+
+    role: {
+      type: String,
+      default: "student"
+    },
+
+    skills: [
+      {
+        type: String
+      }
+    ],
+
+    interests: [
+      {
+        type: String
+      }
+    ],
+
+    appliedInternships: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Internship"
+      }
+    ],
+
+    mentorshipRequests: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Alumni"
+      }
+    ]
   },
-
-  rollNumber: { 
-    type: String, 
-    required: true, 
-    unique: true 
-  },
-
-  course: { 
-    type: String, 
-    required: true 
-  },
-
-  yearOfStudy: { 
-    type: Number, 
-    required: true 
-  },
-
-  skills: [
-    { 
-      type: String 
-    }
-  ],
-
-  interests: [
-    { 
-      type: String 
-    }
-  ],
-
-  appliedInternships: [
-    { type: mongoose.Schema.Types.ObjectId, 
-      ref: 'Internship' 
-    }
-  ],
-
-  mentorshipRequests: [
-    { 
-      type: mongoose.Schema.Types.ObjectId, 
-      ref: 'Alumni' 
-    }
-  ],
-
-}, 
-{ timestamps: true }
+  { timestamps: true }
 );
 
-module.exports = mongoose.model('Student', studentSchema);
+export default mongoose.model("Student", studentSchema);

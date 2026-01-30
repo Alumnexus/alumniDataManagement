@@ -11,6 +11,9 @@ import {
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import ReCAPTCHA from "react-google-recaptcha";
 
+const passwordRegex =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{6,}$/;
+
 const RecruiterRegistrationForm = () => {
   const [formData, setFormData] = useState({
     userId: "",
@@ -25,10 +28,29 @@ const RecruiterRegistrationForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [captchaVerified, setCaptchaVerified] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "password") {
+      setErrors((prev) => ({
+        ...prev,
+        password: passwordRegex.test(value)
+          ? ""
+          : "Password must be 6+ chars with 1 uppercase, 1 lowercase & 1 special character",
+      }));
+    }
+
+    if (name === "confirmPassword") {
+      setErrors((prev) => ({
+        ...prev,
+        confirmPassword:
+          value !== formData.password ? "Passwords do not match" : "",
+      }));
+    }
   };
 
   const handleCaptchaChange = (value) => {
@@ -37,23 +59,28 @@ const RecruiterRegistrationForm = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     if (!captchaVerified) {
       alert("Please verify the CAPTCHA.");
       return;
     }
+
+    if (!passwordRegex.test(formData.password)) {
+      alert("Password does not meet security requirements.");
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords do not match.");
+      return;
+    }
+
     console.log("Recruiter Registration Data:", formData);
     // TODO: Add API integration here
   };
 
   return (
-    <Box
-      sx={{
-        border: "1px solid #ccc",
-        padding: 3,
-        borderRadius: 2,
-        overflow: "auto",
-      }}
-    >
+    <Box sx={{ border: "1px solid #ccc", p: 3, borderRadius: 2 }}>
       <Typography variant="h5" gutterBottom>
         Recruiter Registration
       </Typography>
@@ -68,6 +95,7 @@ const RecruiterRegistrationForm = () => {
             fullWidth
             required
           />
+
           <TextField
             label="Email"
             type="email"
@@ -77,6 +105,7 @@ const RecruiterRegistrationForm = () => {
             fullWidth
             required
           />
+
           <TextField
             label="Position"
             name="position"
@@ -84,6 +113,7 @@ const RecruiterRegistrationForm = () => {
             onChange={handleChange}
             fullWidth
           />
+
           <TextField
             label="Company"
             name="company"
@@ -91,6 +121,7 @@ const RecruiterRegistrationForm = () => {
             onChange={handleChange}
             fullWidth
           />
+
           <TextField
             label="Location"
             name="location"
@@ -99,6 +130,7 @@ const RecruiterRegistrationForm = () => {
             fullWidth
           />
 
+          {/* PASSWORD */}
           <TextField
             label="Password"
             name="password"
@@ -107,19 +139,20 @@ const RecruiterRegistrationForm = () => {
             onChange={handleChange}
             fullWidth
             required
+            error={!!errors.password}
+            helperText={errors.password}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowPassword(!showPassword)}
-                    edge="end"
-                  >
+                  <IconButton onClick={() => setShowPassword(!showPassword)}>
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
                 </InputAdornment>
               ),
             }}
           />
+
+          {/* CONFIRM PASSWORD */}
           <TextField
             label="Confirm Password"
             name="confirmPassword"
@@ -128,6 +161,8 @@ const RecruiterRegistrationForm = () => {
             onChange={handleChange}
             fullWidth
             required
+            error={!!errors.confirmPassword}
+            helperText={errors.confirmPassword}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
@@ -135,7 +170,6 @@ const RecruiterRegistrationForm = () => {
                     onClick={() =>
                       setShowConfirmPassword(!showConfirmPassword)
                     }
-                    edge="end"
                   >
                     {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
@@ -144,17 +178,23 @@ const RecruiterRegistrationForm = () => {
             }}
           />
 
-          {/* CAPTCHA */}
           <ReCAPTCHA
             sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
             onChange={handleCaptchaChange}
           />
 
-          <Stack direction="row" spacing={2}>
-            <Button type="submit" variant="contained" color="success">
-              Sign Up
-            </Button>
-          </Stack>
+          <Button
+            type="submit"
+            variant="contained"
+            color="success"
+            disabled={
+              !!errors.password ||
+              !!errors.confirmPassword ||
+              !captchaVerified
+            }
+          >
+            Sign Up
+          </Button>
         </Stack>
       </Box>
     </Box>

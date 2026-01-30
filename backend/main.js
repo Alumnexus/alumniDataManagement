@@ -1,120 +1,112 @@
-import express from 'express';
-import mongoose from 'mongoose';
-import Internship from './models/Internship.js';
-import Event from './models/Event.js';
-import Alumni from './models/Alumni.js';
-import Job from './models/Job.js'
-import 'dotenv/config';
+import express from "express";
+import mongoose from "mongoose";
+import "dotenv/config";
 import cors from "cors";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
+// Models
+import Internship from "./models/Internship.js";
+import Event from "./models/Event.js";
+import Alumni from "./models/Alumni.js";
+import Student from "./models/Student.js";
+import Job from "./models/Job.js";
+
 const app = express();
-// Middleware
+
+/* -------------------- MIDDLEWARE -------------------- */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({
-  origin: "http://localhost:3001",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
-}));
 
-
-const dburl = process.env.DATABASE_URL;
-
-mongoose
-  .connect(dburl)
-  .then(() => {
-    console.log("✅ MongoDB Connected");
+app.use(
+  cors({
+    origin: "http://localhost:3001",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
   })
-  .catch((err) => {
-    console.error("❌ MongoDB connection failed:", err.message);
-  });
+);
 
+/* -------------------- DATABASE -------------------- */
+mongoose
+  .connect(process.env.DATABASE_URL)
+  .then(() => console.log("✅ MongoDB Connected"))
+  .catch((err) =>
+    console.error("❌ MongoDB connection failed:", err.message)
+  );
 
-app.get('/', (req, res) => {
-  res.send('Hello World')
-})
+/* -------------------- TEST ROUTE -------------------- */
+app.get("/", (req, res) => {
+  res.send("Backend is running 🚀");
+});
 
-app.get('/get/intern/data', async(req, res)=>{
-  try{
+/* -------------------- INTERNSHIP -------------------- */
+app.get("/get/intern/data", async (req, res) => {
+  try {
     const internData = await Internship.find({});
-    
-    return res.status(200).json({
-      message: "Hello i am haring",
+    res.status(200).json({
+      success: true,
       data: internData
-    })
-  }catch(err){
-    console.log(err);
+    });
+  } catch {
+    res.status(500).json({ success: false, message: "Server error" });
   }
-})
+});
 
+/* -------------------- EVENTS -------------------- */
 app.get("/api/get/event", async (req, res) => {
   try {
     const events = await Event.find({});
-    console.log(events);
-
-    return res.status(200).json({
-      message: "Your data is fetched",
+    res.status(200).json({
       success: true,
       count: events.length,
       data: events
     });
-  } catch (error) {
-    console.error("Error fetching events:", error);
-    return res.status(500).json({
+  } catch {
+    res.status(500).json({
       success: false,
       message: "Failed to fetch events"
     });
   }
 });
 
+/* -------------------- JOBS -------------------- */
 app.get("/get/job/data", async (req, res) => {
   try {
     const jobs = await Job.find({});
-    console.log(jobs);
-
-    return res.status(200).json({
-      message: "Your data is fetched",
+    res.status(200).json({
       success: true,
       count: jobs.length,
       data: jobs
     });
-  } catch (error) {
-    console.error("Error fetching events:", error);
-    return res.status(500).json({
+  } catch {
+    res.status(500).json({
       success: false,
-      message: "Failed to fetch events"
+      message: "Failed to fetch jobs"
     });
   }
 });
 
+/* ==================================================
+   ALUMNI REGISTRATION
+================================================== */
 app.post("/api/alumni/register", async (req, res) => {
-  console.log("Hello i am hearing");
   try {
     const {
       username,
       email,
-      degree,
-      department,
-      graduationYear,
-      currentJob,
-      title,
-      company,
+      enrollmentNumber,
       linkedIn,
       isMentor,
       password
     } = req.body;
 
-    // 1️⃣ Validate required fields
-    if (!username || !email || !degree || !department || !graduationYear || !password) {
+    if (!username || !email || !enrollmentNumber || !password) {
       return res.status(400).json({
         success: false,
         message: "All required fields must be filled"
       });
     }
 
-    // 2️⃣ Check if email exists
     const existingAlumni = await Alumni.findOne({ email });
     if (existingAlumni) {
       return res.status(409).json({
@@ -123,56 +115,109 @@ app.post("/api/alumni/register", async (req, res) => {
       });
     }
 
-    // 3️⃣ Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 4️⃣ Save alumni
     const alumni = await Alumni.create({
       username,
       email,
-      degree,
-      department,
-      graduationYear,
-      currentJob,
-      title,
-      company,
+      enrollmentNumber,
       linkedIn,
       isMentor,
       password: hashedPassword
     });
 
-    // 5️⃣ Generate JWT (AUTO LOGIN)
     const token = jwt.sign(
       { id: alumni._id, role: alumni.role },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
-    // 6️⃣ Send response
-    return res.status(201).json({
+    res.status(201).json({
       success: true,
-      message: "Registration successful",
+      message: "Alumni registered successfully",
       token,
       user: {
         id: alumni._id,
         username: alumni.username,
         email: alumni.email,
-        role: alumni.role
+        isMentor: alumni.isMentor
       }
     });
-
   } catch (error) {
-    console.error("Register error:", error);
-    return res.status(500).json({
+    console.error("Alumni register error:", error);
+    res.status(500).json({
       success: false,
       message: "Server error"
     });
   }
 });
 
+/* ==================================================
+   STUDENT REGISTRATION
+================================================== */
+app.post("/api/student/register", async (req, res) => {
+  try {
+    const {
+      username,
+      email,
+      enrollmentNumber,
+      linkedIn,
+      password
+    } = req.body;
 
+    if (!username || !email || !enrollmentNumber || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "All required fields must be filled"
+      });
+    }
 
-const port = process.env.PORT || 8000;
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`)
-})
+    const existingStudent = await Student.findOne({ email });
+    if (existingStudent) {
+      return res.status(409).json({
+        success: false,
+        message: "Email already registered"
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const student = await Student.create({
+      username,
+      email,
+      enrollmentNumber,
+      linkedIn,
+      password: hashedPassword
+    });
+
+    const token = jwt.sign(
+      { id: student._id, role: student.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "Student registered successfully",
+      token,
+      user: {
+        id: student._id,
+        username: student.username,
+        email: student.email,
+        role: student.role
+      }
+    });
+  } catch (error) {
+    console.error("Student register error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
+  }
+});
+
+/* -------------------- SERVER -------------------- */
+const PORT = process.env.PORT || 8000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
+});

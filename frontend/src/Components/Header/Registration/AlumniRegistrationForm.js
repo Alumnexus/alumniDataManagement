@@ -9,7 +9,6 @@ import {
   Stack,
   IconButton,
   InputAdornment,
-  MenuItem,
   CircularProgress,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
@@ -17,49 +16,20 @@ import ReCAPTCHA from "react-google-recaptcha";
 import axios from "axios";
 import { backendAPI } from "../../middleware";
 
-/* 🔽 Dropdown Options */
-const degreeOptions = [
-  "B.Tech",
-  "B.E",
-  "B.Sc",
-  "BCA",
-  "M.Tech",
-  "M.E",
-  "M.Sc",
-  "MCA",
-  "MBA",
-  "PhD",
-];
-
-const departmentOptions = [
-  "Computer Science",
-  "Information Technology",
-  "Electronics",
-  "Electrical",
-  "Mechanical",
-  "Civil",
-  "Chemical",
-  "Biotechnology",
-  "Mathematics",
-  "Physics",
-  "Management",
-];
+const passwordRegex =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{6,}$/;
 
 const AlumniRegistrationForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [captchaVerified, setCaptchaVerified] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const [formData, setFormData] = useState({
     username: "",
     email: "",
-    degree: "",
-    department: "",
-    graduationYear: "",
-    currentJob: "",
-    title: "",
-    company: "",
+    enrollmentNumber: "",
     linkedIn: "",
     isMentor: false,
     password: "",
@@ -68,10 +38,28 @@ const AlumniRegistrationForm = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
+
+    if (name === "password") {
+      setErrors((prev) => ({
+        ...prev,
+        password: passwordRegex.test(value)
+          ? ""
+          : "Min 6 chars, 1 uppercase, 1 lowercase & 1 special character required",
+      }));
+    }
+
+    if (name === "confirmPassword") {
+      setErrors((prev) => ({
+        ...prev,
+        confirmPassword:
+          value !== formData.password ? "Passwords do not match" : "",
+      }));
+    }
   };
 
   const handleCaptchaChange = (value) => {
@@ -83,6 +71,11 @@ const AlumniRegistrationForm = () => {
 
     if (!captchaVerified) {
       alert("Please verify the CAPTCHA.");
+      return;
+    }
+
+    if (!passwordRegex.test(formData.password)) {
+      alert("Password does not meet security requirements.");
       return;
     }
 
@@ -99,12 +92,7 @@ const AlumniRegistrationForm = () => {
       const payload = {
         username: formData.username,
         email: formData.email,
-        degree: formData.degree,
-        department: formData.department,
-        graduationYear: formData.graduationYear,
-        currentJob: formData.currentJob,
-        title: formData.title,
-        company: formData.company,
+        enrollmentNumber: formData.enrollmentNumber,
         linkedIn: formData.linkedIn,
         isMentor: formData.isMentor,
         password: formData.password,
@@ -114,7 +102,7 @@ const AlumniRegistrationForm = () => {
         headers: { "Content-Type": "application/json" },
       });
 
-      alert("Registration successful! Please verify your email.");
+      alert("Registration successful!");
 
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
@@ -122,12 +110,7 @@ const AlumniRegistrationForm = () => {
       setFormData({
         username: "",
         email: "",
-        degree: "",
-        department: "",
-        graduationYear: "",
-        currentJob: "",
-        title: "",
-        company: "",
+        enrollmentNumber: "",
         linkedIn: "",
         isMentor: false,
         password: "",
@@ -171,71 +154,14 @@ const AlumniRegistrationForm = () => {
             fullWidth
           />
 
-          {/* DEGREE DROPDOWN */}
           <TextField
-            select
-            label="Degree"
-            name="degree"
-            value={formData.degree}
+            label="Enrollment Number"
+            name="enrollmentNumber"
+            value={formData.enrollmentNumber}
             onChange={handleChange}
             required
             fullWidth
-          >
-            {degreeOptions.map((degree) => (
-              <MenuItem key={degree} value={degree}>
-                {degree}
-              </MenuItem>
-            ))}
-          </TextField>
-
-          {/* DEPARTMENT DROPDOWN */}
-          <TextField
-            select
-            label="Department"
-            name="department"
-            value={formData.department}
-            onChange={handleChange}
-            required
-            fullWidth
-          >
-            {departmentOptions.map((dept) => (
-              <MenuItem key={dept} value={dept}>
-                {dept}
-              </MenuItem>
-            ))}
-          </TextField>
-
-          <TextField
-            label="Graduation Year"
-            name="graduationYear"
-            value={formData.graduationYear}
-            onChange={handleChange}
-            required
-            fullWidth
-          />
-
-          <TextField
-            label="Current Job"
-            name="currentJob"
-            value={formData.currentJob}
-            onChange={handleChange}
-            fullWidth
-          />
-
-          <TextField
-            label="Job Title"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            fullWidth
-          />
-
-          <TextField
-            label="Company"
-            name="company"
-            value={formData.company}
-            onChange={handleChange}
-            fullWidth
+            placeholder="22/14/HM/XXX"
           />
 
           <TextField
@@ -266,6 +192,8 @@ const AlumniRegistrationForm = () => {
             onChange={handleChange}
             required
             fullWidth
+            error={!!errors.password}
+            helperText={errors.password}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
@@ -286,6 +214,8 @@ const AlumniRegistrationForm = () => {
             onChange={handleChange}
             required
             fullWidth
+            error={!!errors.confirmPassword}
+            helperText={errors.confirmPassword}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
@@ -310,7 +240,12 @@ const AlumniRegistrationForm = () => {
             type="submit"
             variant="contained"
             color="success"
-            disabled={isSubmitting}
+            disabled={
+              isSubmitting ||
+              !!errors.password ||
+              !!errors.confirmPassword ||
+              !captchaVerified
+            }
           >
             {isSubmitting ? <CircularProgress size={24} /> : "Sign Up"}
           </Button>
