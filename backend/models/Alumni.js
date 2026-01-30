@@ -1,50 +1,3 @@
-// // backend/models/Alumni.js
-// const mongoose = require('mongoose');
-
-// const alumniSchema = new mongoose.Schema({
-//   graduationYear: { 
-//     type: Number, 
-//     required: true 
-//   },  
-
-//   course: { 
-//     type: String, 
-//     required: true 
-//   },
-
-//   currentJobTitle: { 
-//     type: String 
-//   },
-
-//   company: { 
-//     type: String 
-//   },
-
-//   location: { 
-//     type: String 
-//   },
-
-//   linkedInProfile: { 
-//     type: String 
-//   },
-
-//   mentorshipOffered: { 
-//     type: Boolean, 
-//     default: false 
-//   },
-  
-//   donations: [{ 
-//     type: mongoose.Schema.Types.ObjectId, 
-//     ref: 'Donation' 
-//   }],
-  
-// }, 
-// { timestamps: true }
-// );
-
-// module.exports = mongoose.model('Alumni', alumniSchema);
-
-
 import mongoose from "mongoose";
 
 const alumniSchema = new mongoose.Schema(
@@ -63,35 +16,17 @@ const alumniSchema = new mongoose.Schema(
       trim: true
     },
 
-    degree: {
+    enrollmentNumber: {
       type: String,
-      required: true
-    },
-
-    department: {
-      type: String,
-      required: true
-    },
-
-    graduationYear: {
-      type: Number,
-      required: true
-    },
-
-    currentJob: {
-      type: String
-    },
-
-    title: {
-      type: String
-    },
-
-    company: {
-      type: String
+      required: true,
+      unique: true,
+      trim: true
+      // Example: 22/14/HM/XXX
     },
 
     linkedIn: {
-      type: String
+      type: String,
+      trim: true
     },
 
     isMentor: {
@@ -114,7 +49,7 @@ const alumniSchema = new mongoose.Schema(
 
     isVerified: {
       type: Boolean,
-      default: false   // for OTP / email verification
+      default: false   // email / OTP verification
     }
   },
   { timestamps: true }
