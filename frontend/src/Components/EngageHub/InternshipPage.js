@@ -71,7 +71,7 @@ export default function InternshipsPage() {
   };
   
   const handleCloseSnackbar = (event, reason) => {
-    if (reason === "clickaway") {
+    if (reason === "clickaway") {  
       return;
     }
     setOpenSnackbar(false);
