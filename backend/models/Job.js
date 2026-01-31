@@ -40,6 +40,12 @@ const jobSchema = new mongoose.Schema(
       min: 1,
     },
 
+    postedBy: { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: 'Alumni', 
+      required: true 
+    },
+
     description: {
       type: String,
       required: true,

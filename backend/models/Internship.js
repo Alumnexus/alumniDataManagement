@@ -35,18 +35,18 @@ const internshipSchema = new mongoose.Schema({
     type: String 
   },
 
-  // postedBy: { 
-  //   type: mongoose.Schema.Types.ObjectId, 
-  //   ref: 'Recruiter', 
-  //   required: true 
-  // },
+  postedBy: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Alumni', 
+    required: true 
+  },
 
-  // applicants: [
-  //   { 
-  //     type: mongoose.Schema.Types.ObjectId, 
-  //     ref: 'Student' 
-  //   }
-  // ],
+  applicants: [
+    { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: 'Student' 
+    }
+  ],
 
   expiresAt: {
     type: Date,
