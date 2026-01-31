@@ -88,7 +88,8 @@ app.post("/api/alumni/register", async (req, res) => {
         id: newAlumni._id,
         username: newAlumni.username,
         email: newAlumni.email,
-        isMentor: newAlumni.isMentor
+        isMentor: newAlumni.isMentor,
+        role: "alumni"
       }
     });
 
@@ -200,6 +201,51 @@ app.post("/api/student/register", async (req, res) => {
   } catch (error) {
     console.error("Student Registration Error:", error);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+app.post("/api/login", async (req, res) => {
+  const { email, password, role } = req.body;
+
+  try {
+    let user;
+    // 1. Identify which collection to search based on role
+    if (role === "student") user = await Student.findOne({ email });
+    else if (role === "admin") user = await Admin.findOne({ email });
+    else if (role === "alumni") user = await Alumni.findOne({ email });
+
+    // 2. Check if user exists
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Invalid Email or Role" });
+    }
+
+    // 3. Compare Password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: "Invalid Password" });
+    }
+
+    // 4. Generate JWT Token
+    const token = jwt.sign(
+      { id: user._id, role: role },
+      process.env.JWT_SECRET || "your_secret_key",
+      { expiresIn: "1d" }
+    );
+
+    // 5. Send response
+    res.status(200).json({
+      success: true,
+      token,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        role: role,
+      },
+    });
+  } catch (error) {
+    console.error("Login Error:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
   }
 });
 

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Container,
   Box,
@@ -15,8 +15,11 @@ import {
   MenuItem,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import axios from "axios";
+import {backendAPI} from "../middleware.js";
 
 export default function Login() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -37,12 +40,24 @@ export default function Login() {
     setShowPassword((prev) => !prev);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form Submitted:", formData);
+    
+    try {
+      const api = backendAPI();
+      const res = await axios.post(`${api}/api/login`, formData);
 
-    setFormData({ email: "", password: "", role: "" });
-    setShowPassword(false);
+      if (res.data.success) {
+        // Save data to localStorage
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+
+        alert("Login Successful!");
+        navigate("/"); // This redirect will trigger the Header to show 'Logout'
+      }
+    } catch (error) {
+      alert(error.response?.data?.message || "Login failed. Please check credentials.");
+    }
   };
 
   return (

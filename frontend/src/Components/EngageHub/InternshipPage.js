@@ -23,11 +23,12 @@ import { backendAPI } from "../middleware.js";
 const skillCategories = ["All", "Web Dev", "ML", "Software Eng."];
 
 export default function InternshipsPage() {
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const [currentFilter, setCurrentFilter] = useState("All");
-  const navigate = useNavigate();
   const location = useLocation();
   const [internships, setInternship] = useState([]);
+  const [userRole, setUserRole] = useState(null); // Role state
 
   // Snackbar state
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -37,6 +38,19 @@ export default function InternshipsPage() {
   const [popoverAnchor, setPopoverAnchor] = useState(null);
   const [popoverInternship, setPopoverInternship] = useState(null);
 
+  // 1. Check Role on Mount and Route Change
+  useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+    console.log(savedUser);
+    if (savedUser) {
+      const user = JSON.parse(savedUser);
+      setUserRole(user.role); 
+    } else {
+      setUserRole(null);
+    }
+  }, []);
+
+  // 2. Handle Success Messages from Navigation
   useEffect(() => {
     if (location.state?.successMessage) {
       setSnackbarMessage(location.state.successMessage);
@@ -45,19 +59,20 @@ export default function InternshipsPage() {
     }
   }, [location.state, navigate, location.pathname]);
 
+  // 3. Fetch Data from Backend
   const findinternData = async () => {
     try {
       const api = backendAPI();
       const res = await axios.get(`${api}/get/intern/data`);
       setInternship(res.data.data);
     } catch (err) {
-      console.log("Some error happened", err);
+      console.log("Fetch Error:", err);
     }
   };
 
   useEffect(() => {
     findinternData();
-  }, [location.state]);
+  }, []);
 
   const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
@@ -73,12 +88,13 @@ export default function InternshipsPage() {
 
   const handleAddInternship = () => navigate("/add-Internship");
 
+  // Filter Logic
   const filteredInternships = internships.filter((internship) => {
     if (currentFilter === "All") return true;
-    return internship.skills === currentFilter;
+    // Check if the skill string contains the filter category
+    return internship.skills?.toLowerCase().includes(currentFilter.toLowerCase());
   });
 
-  // Popover handlers
   const handlePopoverOpen = (event, internship) => {
     setPopoverAnchor(event.currentTarget);
     setPopoverInternship(internship);
@@ -91,6 +107,7 @@ export default function InternshipsPage() {
 
   return (
     <Box sx={{ px: { xs: 2, md: 6 }, py: 6, backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
+      
       {/* HEADER */}
       <Box sx={{ display: "flex", alignItems: "center", mb: 4, flexWrap: "wrap", gap: 2 }}>
         <Typography variant="h3" sx={{ color: "#43A047", fontWeight: "bold", flexGrow: 1 }}>
@@ -98,7 +115,7 @@ export default function InternshipsPage() {
         </Typography>
 
         <Stack direction="row" spacing={1} alignItems="center">
-          <IconButton aria-label="filter internships" onClick={handleMenuOpen} sx={{ border: "1px solid #ddd" }}>
+          <IconButton onClick={handleMenuOpen} sx={{ border: "1px solid #ddd" }}>
             <FilterListIcon />
           </IconButton>
           <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
@@ -109,63 +126,74 @@ export default function InternshipsPage() {
             ))}
           </Menu>
 
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            sx={{
-              backgroundColor: "#43A047",
-              "&:hover": { backgroundColor: "#388E3C" },
-              textTransform: "none",
-              fontWeight: "bold",
-              py: 1,
-              px: 2,
-            }}
-            onClick={handleAddInternship}
-          >
-            Add Internship
-          </Button>
+          {/* ROLE BASED BUTTON: Only visible to Alumni */}
+          {userRole === "alumni" && (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              sx={{
+                backgroundColor: "#43A047",
+                "&:hover": { backgroundColor: "#388E3C" },
+                textTransform: "none",
+                fontWeight: "bold",
+                py: 1,
+                px: 2,
+              }}
+              onClick={handleAddInternship}
+            >
+              Add Internship
+            </Button>
+          )}
         </Stack>
       </Box>
 
       {/* INTERNSHIP CARDS GRID */}
       <Grid container spacing={4} justifyContent="center">
-        {filteredInternships.map((internship, index) => (
-          <Grid item xs={12} sm={6} md={4} key={index}>
-            <Card
-              sx={{
-                background: "white",
-                borderRadius: 3,
-                boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-                transition: "transform 0.3s, box-shadow 0.3s",
-                "&:hover": { transform: "scale(1.05)", boxShadow: "0 8px 25px rgba(0,0,0,0.2)" },
-                display: "flex",
-                flexDirection: "column",
-                height: "100%",
-              }}
-            >
-              <CardContent sx={{ textAlign: "center", flexGrow: 1, display: "flex", flexDirection: "column" }}>
-                <Typography variant="h6" sx={{ fontWeight: "bold", mb: 1, flexGrow: 1 }}>
-                  {internship.title}
-                </Typography>
-                <Typography sx={{ mb: 1, color: "#555" }}>{internship.company}</Typography>
-                <Typography sx={{ mb: 1, color: "#777" }}>Duration: {internship.duration}</Typography>
-                <Typography sx={{ mb: 2, color: "#777" }}>Location: {internship.location}</Typography>
-                <Button
-                  variant="contained"
-                  sx={{ backgroundColor: "#43A047", "&:hover": { backgroundColor: "#66BB6A" }, mt: "auto" }}
-                  onClick={() => navigate(`/apply/${internship.id}`)}
-                  onMouseEnter={(e) => handlePopoverOpen(e, internship)}
-                  onMouseLeave={handlePopoverClose}
-                >
-                  Apply Now
-                </Button>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
+        {filteredInternships.length > 0 ? (
+          filteredInternships.map((internship, index) => (
+            <Grid item xs={12} sm={6} md={4} key={index}>
+              <Card
+                sx={{
+                  background: "white",
+                  borderRadius: 3,
+                  boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                  transition: "transform 0.3s",
+                  "&:hover": { transform: "translateY(-5px)", boxShadow: "0 8px 25px rgba(0,0,0,0.2)" },
+                  display: "flex",
+                  flexDirection: "column",
+                  height: "100%",
+                }}
+              >
+                <CardContent sx={{ textAlign: "center", flexGrow: 1, display: "flex", flexDirection: "column" }}>
+                  <Typography variant="h6" sx={{ fontWeight: "bold", mb: 1 }}>
+                    {internship.title}
+                  </Typography>
+                  <Typography sx={{ mb: 1, color: "#555" }}>{internship.company}</Typography>
+                  <Typography variant="body2" sx={{ mb: 1, color: "#777" }}>Duration: {internship.duration}</Typography>
+                  <Typography variant="body2" sx={{ mb: 2, color: "#777" }}>Location: {internship.location}</Typography>
+                  
+                  {/* Students and Admins can see the Apply button */}
+                  {(userRole === "student" || userRole === "admin") && (
+                    <Button
+                      variant="contained"
+                      sx={{ backgroundColor: "#43A047", "&:hover": { backgroundColor: "#66BB6A" }, mt: "auto" }}
+                      onClick={() => navigate(`/apply/${internship._id}`)}
+                      onMouseEnter={(e) => handlePopoverOpen(e, internship)}
+                      onMouseLeave={handlePopoverClose}
+                    >
+                      Apply Now
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+          ))
+        ) : (
+          <Typography variant="h6" sx={{ mt: 4, color: "#777" }}>No internships found for this category.</Typography>
+        )}
       </Grid>
 
-      {/* POPUP FOR INTERNSHIP DETAILS */}
+      {/* DETAILS POPOVER */}
       <Popover
         open={open}
         anchorEl={popoverAnchor}
@@ -174,34 +202,23 @@ export default function InternshipsPage() {
         transformOrigin={{ vertical: "bottom", horizontal: "left" }}
         disableRestoreFocus
         sx={{ pointerEvents: "none" }}
-        PaperProps={{ sx: { p: 2, maxWidth: 300 } }}
+        PaperProps={{ sx: { p: 2, maxWidth: 300, boxShadow: 3 } }}
       >
         {popoverInternship && (
           <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: "bold", mb: 1 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#43A047" }}>
               {popoverInternship.title}
             </Typography>
-            <Typography variant="body2" sx={{ mb: 0.5 }}>Company: {popoverInternship.company}</Typography>
-            <Typography variant="body2" sx={{ mb: 0.5 }}>Duration: {popoverInternship.duration}</Typography>
-            <Typography variant="body2" sx={{ mb: 0.5 }}>Location: {popoverInternship.location}</Typography>
-            <Typography variant="body2" sx={{ mb: 0.5 }}>Skills: {popoverInternship.skills}</Typography>
-            {popoverInternship.description && (
-              <Typography variant="body2">Description: {popoverInternship.description}</Typography>
-            )}
+            <Typography variant="body2"><b>Company:</b> {popoverInternship.company}</Typography>
+            <Typography variant="body2"><b>Skills:</b> {popoverInternship.skills}</Typography>
+            <Typography variant="body2" sx={{ mt: 1 }}>{popoverInternship.description}</Typography>
           </Box>
         )}
       </Popover>
 
       {/* SNACKBAR */}
-      <Snackbar
-        open={openSnackbar}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert onClose={handleCloseSnackbar} severity="success" variant="filled" sx={{ width: "100%" }}>
-          {snackbarMessage}
-        </Alert>
+      <Snackbar open={openSnackbar} autoHideDuration={4000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: "top", horizontal: "center" }}>
+        <Alert onClose={handleCloseSnackbar} severity="success" variant="filled">{snackbarMessage}</Alert>
       </Snackbar>
     </Box>
   );
