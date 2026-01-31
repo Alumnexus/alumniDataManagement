@@ -2,14 +2,14 @@ import React, { useState } from "react";
 import AlumniRegistrationForm from "./AlumniRegistrationForm";
 import StudentRegistrationForm from "./StudentRegistrationForm";
 import AdminRegistrationForm from "./AdminRegistrationForm";
-import RecruiterRegistrationForm from "./RecruiterRegistrationForm";
+// import RecruiterRegistrationForm from "./RecruiterRegistrationForm";
 import { Container, Paper, Typography, Button, Stack, Box } from "@mui/material";
 
 const userTypes = [
   { label: "Alumni", component: <AlumniRegistrationForm /> },
   { label: "Student", component: <StudentRegistrationForm /> },
   { label: "Admin", component: <AdminRegistrationForm /> },
-  { label: "Recruiter", component: <RecruiterRegistrationForm /> },
+  // { label: "Recruiter", component: <RecruiterRegistrationForm /> },
 ];
 
 const RegistrationPage = () => {

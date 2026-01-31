@@ -16,7 +16,7 @@ const eventSchema = new mongoose.Schema({
   },
   location: {
     type: String,
-    trim: true,
+    trim: true,  
   },
   maxAttendees: {
     type: Number,
@@ -27,16 +27,6 @@ const eventSchema = new mongoose.Schema({
   //   ref: 'User',
   //   required: true,
   // },
-  createdBy: {
-    type: String,     // Changed from: mongoose.Schema.Types.ObjectId
-    required: true,
-    // The 'ref' property is removed as it only works with ObjectId
-  },
-  course: {
-    type: String,
-    required: true,
-    trim: true, 
-  },
   organization: {
     type: String,
     required: true,

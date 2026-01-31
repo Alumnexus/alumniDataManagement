@@ -17,6 +17,7 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteIcon from "@mui/icons-material/Delete";
 import axios from "axios";
 import AlertMessage from "../Utils/AlertMessage";
+import { backendAPI, BackendApi } from "../middleware.js"
 
 export default function AddEventForm({ onSubmit }) {
   const navigate = useNavigate();
@@ -28,8 +29,6 @@ export default function AddEventForm({ onSubmit }) {
     date: "",
     location: "",
     maxAttendees: "",
-    createdBy: "",
-    course: "",
     organization: "",
     category: "",
     visibility: "",
@@ -102,8 +101,6 @@ export default function AddEventForm({ onSubmit }) {
     if (
       !formData.title ||
       !formData.date ||
-      !formData.createdBy ||
-      !formData.course ||
       !formData.organization ||
       !formData.eventFile ||
       !formData.category ||
@@ -125,8 +122,10 @@ export default function AddEventForm({ onSubmit }) {
       }
     });
 
+    const api = backendAPI();
+
     try {
-      await axios.post("http://localhost:5000/save/event/data", dataToSend);
+      await axios.post(`${api}/save/event/data`, dataToSend);
       navigate("/events", {
         state: {
           message: "Event created successfully!",
@@ -134,6 +133,7 @@ export default function AddEventForm({ onSubmit }) {
         },
       });
     } catch (err) {
+      console.log(err);
       const errorMessage =
         err.response?.data?.error || "An error occurred. Please try again.";
       setNotification({
@@ -173,14 +173,14 @@ export default function AddEventForm({ onSubmit }) {
         sx={{
           position: "relative",
           maxWidth: "650px",
-          mx: "auto",
+          mx: "auto",  
           mt: 4,
           mb: 4,
           p: 4,
           borderRadius: 3,
           boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
           backgroundColor: "#fff",
-          maxHeight: "90vh",
+          maxHeight: "90vh",  
           overflowY: "auto",
         }}
       >
@@ -205,8 +205,6 @@ export default function AddEventForm({ onSubmit }) {
             <TextField label="Date & Time" name="date" type="datetime-local" value={formData.date} onChange={handleChange} required InputLabelProps={{ shrink: true }} fullWidth />
             <TextField label="Location" name="location" value={formData.location} onChange={handleChange} fullWidth />
             <TextField label="Maximum Attendees" name="maxAttendees" type="number" value={formData.maxAttendees} onChange={handleChange} fullWidth />
-            <TextField label="Created By (User ID)" name="createdBy" value={formData.createdBy} onChange={handleChange} required fullWidth />
-            <TextField label="Course" name="course" value={formData.course} onChange={handleChange} required fullWidth />
             <TextField label="Organization Name" name="organization" value={formData.organization} onChange={handleChange} required fullWidth />
             <TextField select label="Category" name="category" value={formData.category} onChange={handleChange} required fullWidth>
               {categories.map((cat, index) => (<MenuItem key={index} value={cat}>{cat}</MenuItem>))}

@@ -17,6 +17,8 @@ import ScheduleIcon from "@mui/icons-material/Schedule";
 import TitleIcon from "@mui/icons-material/Title";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { backendAPI } from "../middleware.js";
 
 const initialState = {
   title: "",
@@ -50,7 +52,7 @@ export default function AddInternForm() {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {
@@ -58,14 +60,19 @@ export default function AddInternForm() {
       return;
     }
 
-    console.log("Submitting Internship Data:", formData);
+    try {
+      const api = backendAPI();
+      const response = await axios.post(`${api}/api/internships`, formData);
 
-    // Backend call will go here later
-    // axios.post("/api/internships", formData)
-
-    navigate("/internships", {
-      state: { successMessage: "Internship posted successfully!" },
-    });
+      if (response.data.success) {
+        navigate("/internships", {
+          state: { successMessage: "Internship posted successfully!" },
+        });
+      }
+    } catch (err) {
+      console.error("Submission error", err);
+      alert(err.response?.data?.error || "Failed to post internship");
+    }
   };
 
   const handleCancel = () => {

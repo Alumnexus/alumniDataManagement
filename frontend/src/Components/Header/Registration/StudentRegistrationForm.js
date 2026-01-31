@@ -7,72 +7,75 @@ import {
   Stack,
   IconButton,
   InputAdornment,
-  MenuItem,
+  CircularProgress,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import ReCAPTCHA from "react-google-recaptcha";
+import axios from "axios";
+import { backendAPI } from "../../middleware";
 
-/* Dropdown options */
-const degreeOptions = [
-  "B.Tech",
-  "B.E",
-  "B.Sc",
-  "BCA",
-  "M.Tech",
-  "M.E",
-  "M.Sc",
-  "MCA",
-  "MBA",
-];
-
-const departmentOptions = [
-  "Computer Science",
-  "Information Technology",
-  "Electronics",
-  "Electrical",
-  "Mechanical",
-  "Civil",
-  "Chemical",
-  "Biotechnology",
-  "Mathematics",
-  "Physics",
-  "Management",
-];
+// Regex for strong password
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{6,}$/;
 
 const StudentRegistrationForm = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [captchaVerified, setCaptchaVerified] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState({});
+
   const [formData, setFormData] = useState({
     username: "",
     email: "",
-    degree: "",
-    department: "",
-    graduationYear: "",
+    enrollmentNumber: "",
     linkedIn: "",
-    enrollmentNo: "",
     password: "",
     confirmPassword: "",
   });
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [captchaVerified, setCaptchaVerified] = useState(false);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
+
+    // Password validation
+    if (name === "password") {
+      setErrors((prev) => ({
+        ...prev,
+        password: passwordRegex.test(value)
+          ? ""
+          : "Min 6 chars, 1 uppercase, 1 lowercase & 1 special character required",
+      }));
+    }
+
+    if (name === "confirmPassword") {
+      setErrors((prev) => ({
+        ...prev,
+        confirmPassword:
+          value !== formData.password ? "Passwords do not match" : "",
+      }));
+    }
   };
 
   const handleCaptchaChange = (value) => {
     setCaptchaVerified(!!value);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!captchaVerified) {
       alert("Please verify the CAPTCHA.");
+      return;
+    }
+
+    if (!passwordRegex.test(formData.password)) {
+      alert(
+        "Password does not meet requirements: minimum 6 characters, 1 uppercase, 1 lowercase, 1 special character."
+      );
       return;
     }
 
@@ -81,18 +84,49 @@ const StudentRegistrationForm = () => {
       return;
     }
 
-    console.log("Student Registration Data:", formData);
-    // TODO: API integration
+    setIsSubmitting(true);
+
+    try {
+      const api = backendAPI();
+
+      const payload = {
+        username: formData.username,
+        email: formData.email,
+        enrollmentNumber: formData.enrollmentNumber,
+        linkedIn: formData.linkedIn,
+        password: formData.password,
+      };
+
+      const res = await axios.post(`${api}/api/student/register`, payload, {
+        headers: { "Content-Type": "application/json" },
+      });
+
+      alert("Student registration successful!");
+
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+
+      setFormData({
+        username: "",
+        email: "",
+        enrollmentNumber: "",
+        linkedIn: "",
+        password: "",
+        confirmPassword: "",
+      });
+    } catch (error) {
+      if (error.response) {
+        alert(error.response.data.message || "Registration failed");
+      } else {
+        alert("Server not reachable. Please try again later.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <Box
-      sx={{
-        border: "1px solid #ccc",
-        padding: 3,
-        borderRadius: 2,
-      }}
-    >
+    <Box sx={{ border: "1px solid #ccc", p: 3, borderRadius: 2 }}>
       <Typography variant="h5" gutterBottom>
         Student Registration
       </Typography>
@@ -104,61 +138,28 @@ const StudentRegistrationForm = () => {
             name="username"
             value={formData.username}
             onChange={handleChange}
-            fullWidth
             required
+            fullWidth
           />
 
           <TextField
             label="Email ID"
-            type="email"
             name="email"
+            type="email"
             value={formData.email}
             onChange={handleChange}
-            fullWidth
             required
+            fullWidth
           />
 
-          {/* DEGREE DROPDOWN */}
           <TextField
-            select
-            label="Degree"
-            name="degree"
-            value={formData.degree}
+            label="Enrollment Number"
+            name="enrollmentNumber"
+            value={formData.enrollmentNumber}
             onChange={handleChange}
-            fullWidth
             required
-          >
-            {degreeOptions.map((degree) => (
-              <MenuItem key={degree} value={degree}>
-                {degree}
-              </MenuItem>
-            ))}
-          </TextField>
-
-          {/* DEPARTMENT DROPDOWN */}
-          <TextField
-            select
-            label="Department"
-            name="department"
-            value={formData.department}
-            onChange={handleChange}
             fullWidth
-            required
-          >
-            {departmentOptions.map((dept) => (
-              <MenuItem key={dept} value={dept}>
-                {dept}
-              </MenuItem>
-            ))}
-          </TextField>
-
-          <TextField
-            label="Graduation Year"
-            name="graduationYear"
-            value={formData.graduationYear}
-            onChange={handleChange}
-            fullWidth
-            required
+            placeholder="22/11/TY/XXX"
           />
 
           <TextField
@@ -170,26 +171,21 @@ const StudentRegistrationForm = () => {
           />
 
           <TextField
-            label="Enrollment No."
-            name="enrollmentNo"
-            value={formData.enrollmentNo}
-            onChange={handleChange}
-            fullWidth
-            required
-          />
-
-          <TextField
             label="Password"
             name="password"
             type={showPassword ? "text" : "password"}
             value={formData.password}
             onChange={handleChange}
-            fullWidth
             required
+            fullWidth
+            error={!!errors.password}
+            helperText={errors.password}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton onClick={() => setShowPassword(!showPassword)}>
+                  <IconButton
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
                 </InputAdornment>
@@ -203,15 +199,15 @@ const StudentRegistrationForm = () => {
             type={showConfirmPassword ? "text" : "password"}
             value={formData.confirmPassword}
             onChange={handleChange}
-            fullWidth
             required
+            fullWidth
+            error={!!errors.confirmPassword}
+            helperText={errors.confirmPassword}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton
-                    onClick={() =>
-                      setShowConfirmPassword(!showConfirmPassword)
-                    }
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
                     {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
@@ -225,8 +221,18 @@ const StudentRegistrationForm = () => {
             onChange={handleCaptchaChange}
           />
 
-          <Button type="submit" variant="contained" color="success">
-            Sign Up
+          <Button
+            type="submit"
+            variant="contained"
+            color="success"
+            disabled={
+              isSubmitting ||
+              !!errors.password ||
+              !!errors.confirmPassword ||
+              !captchaVerified
+            }
+          >
+            {isSubmitting ? <CircularProgress size={24} /> : "Sign Up"}
           </Button>
         </Stack>
       </Box>

@@ -20,6 +20,8 @@ import WorkIcon from "@mui/icons-material/Work";
 import CategoryIcon from "@mui/icons-material/Category";
 import GroupIcon from "@mui/icons-material/Group";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { backendAPI } from "../middleware.js";
 
 const initialState = {
   title: "",
@@ -55,7 +57,7 @@ export default function AddJobForm() {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {
@@ -63,13 +65,19 @@ export default function AddJobForm() {
       return;
     }
 
-    console.log("Submitting Job:", formData);
+    try {
+      const api = backendAPI();
+      const response = await axios.post(`${api}/api/jobs`, formData);
 
-    // axios.post("/api/jobs", formData)
-
-    navigate("/jobs", {
-      state: { successMessage: "Job posted successfully!" },
-    });
+      if (response.data.success) {
+        navigate("/jobs", {
+          state: { successMessage: "Job posted successfully!" },
+        });
+      }
+    } catch (err) {
+      console.error("Submission error", err);
+      alert(err.response?.data?.error || "An error occurred while posting the job.");
+    }
   };
 
   return (
