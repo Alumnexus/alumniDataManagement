@@ -1,7 +1,7 @@
 # Digital Platform for Centralized Alumni Management and Engagement
 
 ## Overview
-A responsive and user intreractive project built using React JS, CSS, Node JS, Express, and Mongo DB database.
+A responsive and user intreractive project built using React JS, Node JS, Express, and Mongo DB database.
 This project is a centralized digital platform designed to manage and engage alumni effectively.  
 It provides institutions with a reliable system to store, update, and utilize alumni data while offering alumni opportunities to connect, collaborate, and contribute.
 
