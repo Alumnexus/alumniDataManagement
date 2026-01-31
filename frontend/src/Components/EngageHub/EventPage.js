@@ -29,7 +29,7 @@ export default function EventsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 🔹 Hover states
+  // Hover states
   const [hoverAnchorEl, setHoverAnchorEl] = useState(null);
   const [hoverEvent, setHoverEvent] = useState(null);
 
@@ -37,7 +37,6 @@ export default function EventsPage() {
   const location = useLocation();
   const open = Boolean(anchorEl);
 
-  // Fetch events
   const findEventData = async () => {
     try {
       setLoading(true);
@@ -179,6 +178,7 @@ export default function EventsPage() {
                     open={Boolean(hoverAnchorEl) && hoverEvent?._id === event._id}
                     anchorEl={hoverAnchorEl}
                     disableRestoreFocus
+                    sx={{ pointerEvents: "none" }}   // ⭐ button stays clickable
                     anchorOrigin={{
                       vertical: "top",
                       horizontal: "center",
