@@ -191,3 +191,35 @@ export const loginUser = async (req, res) => {
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
+
+// Add this to your controllers
+export const getMentors = async (req, res) => {
+  try {
+    // Assuming you have a 'isMentor' boolean or just fetching all Alumni
+    const mentors = await Alumni.find({ isMentor: true }).select("-password");
+    console.log(mentors);
+    
+    res.status(200).json({
+      success: true,
+      data: mentors
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: "Error fetching mentors" });
+  }
+};
+
+// Get all alumni for the directory
+export const getAllAlumni = async (req, res) => {
+  try {
+    const alumni = await Alumni.find({}).select("-password");
+    
+    res.status(200).json({
+      success: true,
+      data: alumni,
+    });
+  } catch (error) {
+    console.error("Error fetching alumni directory:", error);
+    res.status(500).json({ success: false, message: "Server Error fetching directory" });
+  }
+};

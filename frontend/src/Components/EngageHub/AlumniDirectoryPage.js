@@ -1,227 +1,129 @@
-import React, { useState } from "react";
-import {
-  Box,
-  Typography,
-  Grid,
-  Card,
-  CardContent,
-  Avatar,
-  Button,
-  TextField,
+import React, { useState, useEffect } from "react";
+import { 
+  Box, Typography, Grid, Card, CardContent, Avatar, Button, TextField 
 } from "@mui/material";
+import FavoriteIcon from "@mui/icons-material/Favorite";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import WorkOutlineIcon from "@mui/icons-material/WorkOutline";
 import BusinessCenterIcon from "@mui/icons-material/BusinessCenter";
-import FavoriteIcon from "@mui/icons-material/Favorite"; // Heart icon for donation
-
-// Sample Alumni Data
-const alumniList = [
-  {
-    name: "Amit Sharma",
-    graduationYear: 2020,
-    department: "Computer Science",
-    currentJob: "Software Engineer",
-    company: "Google",
-    linkedIn: "https://linkedin.com/in/amit-sharma",
-    avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-  },
-  {
-    name: "Priya Verma",
-    graduationYear: 2019,
-    department: "Electrical Engineering",
-    currentJob: "Data Scientist",
-    company: "Microsoft",
-    linkedIn: "https://linkedin.com/in/priya-verma",
-    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-  },
-  {
-    name: "Ravi Kumar",
-    graduationYear: 2018,
-    department: "Mechanical Engineering",
-    currentJob: "Product Manager",
-    company: "Amazon",
-    linkedIn: "https://linkedin.com/in/ravi-kumar",
-    avatar: "https://randomuser.me/api/portraits/men/41.jpg",
-  },
-  {
-    name: "Neha Gupta",
-    graduationYear: 2021,
-    department: "Information Technology",
-    currentJob: "Cybersecurity Analyst",
-    company: "IBM",
-    linkedIn: "https://linkedin.com/in/neha-gupta",
-    avatar: "https://randomuser.me/api/portraits/women/33.jpg",
-  },
-];
+import axios from "axios";
+import { backendAPI } from "../middleware.js";
 
 export default function AlumniDirectoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [alumniList, setAlumniList] = useState([]);
 
-  // Filter alumni based on search
-  const filteredAlumni = alumniList.filter(
-    (alumni) =>
-      alumni.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      alumni.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      alumni.company.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Fetch all alumni on component mount
+  useEffect(() => {
+    const fetchAlumni = async () => {
+      try {
+        const api = backendAPI();
+        const res = await axios.get(`${api}/api/alumni`);
+        if (res.data.success) {
+          setAlumniList(res.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching alumni:", error);
+      }
+    };
+    fetchAlumni();
+  }, []);
+
+  // Filter alumni based on search (matching your DB fields)
+  const filteredAlumni = alumniList.filter((alumni) => {
+    const query = searchQuery.toLowerCase();
+    return (
+      alumni.username?.toLowerCase().includes(query) ||
+      alumni.department?.toLowerCase().includes(query) ||
+      alumni.company?.toLowerCase().includes(query)
+    );
+  });
 
   return (
-    <Box
-      sx={{
-        px: { xs: 2, md: 6 },
-        py: 6,
-        backgroundColor: "#f9fafc",
-        minHeight: "100vh",
-      }}
-    >
-      {/* Header with Title + Donation Button */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 4,
-          flexWrap: "wrap",
-        }}
-      >
-        <Typography
-          variant="h3"
-          sx={{
-            color: "#0D47A1",
-            fontWeight: "bold",
-          }}
-        >
+    <Box sx={{ px: { xs: 2, md: 6 }, py: 6, backgroundColor: "#f9fafc", minHeight: "100vh" }}>
+      {/* Header */}
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4, flexWrap: "wrap", gap: 2 }}>
+        <Typography variant="h3" sx={{ color: "#0D47A1", fontWeight: "bold" }}>
           Alumni Directory
         </Typography>
 
         <Button
-  variant="contained"
-  startIcon={<FavoriteIcon />}
-  sx={{
-    textTransform: "none",
-    fontWeight: "bold",
-    fontSize: "1.8rem", // Increased font size
-    padding: "10px 20px", // Slightly larger padding
-    background: "linear-gradient(45deg, #FF6B6B, #FF3D00)",
-    "&:hover": {
-      background: "linear-gradient(45deg, #FF3D00, #FF6B6B)",
-      transform: "scale(1.05)",
-    },
-    boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
-  }}
-  onClick={() => window.location.href = "/donate"} // Replace with your donation page URL
->
-  Donate
-</Button>
-
+          variant="contained"
+          startIcon={<FavoriteIcon />}
+          sx={{
+            textTransform: "none", fontWeight: "bold", fontSize: "1.2rem",
+            padding: "10px 24px", background: "linear-gradient(45deg, #FF6B6B, #FF3D00)",
+            "&:hover": { transform: "scale(1.05)" },
+            boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
+          }}
+          onClick={() => window.location.href = "/donate"}
+        >
+          Donate
+        </Button>
       </Box>
 
       {/* Search Bar */}
       <Box sx={{ display: "flex", justifyContent: "center", mb: 5 }}>
         <TextField
           variant="outlined"
-          placeholder="Search alumni by name, department, or company..."
+          fullWidth
+          placeholder="Search by name, department, or company..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          sx={{
-            width: "100%",
-            maxWidth: 500,
-            backgroundColor: "#fff",
-            borderRadius: 2,
-            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-          }}
+          sx={{ maxWidth: 600, backgroundColor: "#fff", borderRadius: 2 }}
         />
       </Box>
 
       {/* Alumni Grid */}
       <Grid container spacing={4} justifyContent="center">
         {filteredAlumni.length > 0 ? (
-          filteredAlumni.map((alumni, index) => (
-            <Grid item xs={12} sm={6} md={4} key={index}>
-              <Card
-                sx={{
-                  background: "#fff",
-                  borderRadius: 3,
-                  boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-                  transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                  textAlign: "center",
-                  "&:hover": {
-                    transform: "translateY(-8px)",
-                    boxShadow: "0 8px 25px rgba(0,0,0,0.2)",
-                  },
-                }}
-              >
+          filteredAlumni.map((alumni) => (
+            <Grid item xs={12} sm={6} md={4} key={alumni._id}>
+              <Card sx={{
+                borderRadius: 3, textAlign: "center", transition: "0.3s",
+                "&:hover": { transform: "translateY(-8px)", boxShadow: "0 8px 25px rgba(0,0,0,0.2)" }
+              }}>
                 <CardContent>
-                  {/* Profile Picture */}
                   <Avatar
                     src={alumni.avatar}
-                    alt={alumni.name}
-                    sx={{
-                      width: 80,
-                      height: 80,
-                      mx: "auto",
-                      mb: 2,
-                      border: "3px solid #0D47A1",
-                    }}
-                  />
-
-                  {/* Alumni Info */}
-                  <Typography
-                    variant="h6"
-                    sx={{ fontWeight: "bold", color: "#333" }}
+                    sx={{ width: 80, height: 80, mx: "auto", mb: 2, border: "3px solid #0D47A1" }}
                   >
-                    {alumni.name}
+                    {alumni.username?.charAt(0)}
+                  </Avatar>
+
+                  <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+                    {alumni.username}
                   </Typography>
                   <Typography variant="body2" sx={{ color: "#777", mb: 1 }}>
-                    {alumni.department} • Class of {alumni.graduationYear}
+                    {alumni.department || "General"} • Class of {alumni.graduationYear || "N/A"}
                   </Typography>
 
-                  {/* Job Details */}
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "center",
-                      gap: 2,
-                      color: "#555",
-                      mb: 2,
-                    }}
-                  >
+                  <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mb: 2, color: "#555" }}>
                     <Box display="flex" alignItems="center" gap={0.5}>
                       <WorkOutlineIcon fontSize="small" />
-                      <Typography variant="body2">{alumni.currentJob}</Typography>
+                      <Typography variant="body2">{alumni.jobRole || "Alumni"}</Typography>
                     </Box>
                     <Box display="flex" alignItems="center" gap={0.5}>
                       <BusinessCenterIcon fontSize="small" />
-                      <Typography variant="body2">{alumni.company}</Typography>
+                      <Typography variant="body2">{alumni.company || "N/A"}</Typography>
                     </Box>
                   </Box>
 
-                  {/* LinkedIn Button */}
                   <Button
                     variant="contained"
                     startIcon={<LinkedInIcon />}
                     href={alumni.linkedIn}
                     target="_blank"
-                    sx={{
-                      backgroundColor: "#0A66C2",
-                      "&:hover": { backgroundColor: "#004182" },
-                      textTransform: "none",
-                      fontWeight: "bold",
-                    }}
+                    sx={{ backgroundColor: "#0A66C2", textTransform: "none" }}
                   >
-                    Connect on LinkedIn
+                    Connect
                   </Button>
                 </CardContent>
               </Card>
             </Grid>
           ))
         ) : (
-          <Typography
-            variant="h6"
-            sx={{ textAlign: "center", color: "#777", mt: 4 }}
-          >
-            No alumni found matching your search.
-          </Typography>
+          <Typography variant="h6" sx={{ color: "#777", mt: 4 }}>No results found.</Typography>
         )}
       </Grid>
     </Box>
