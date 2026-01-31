@@ -10,8 +10,8 @@ import {
   IconButton,
   InputAdornment,
   CircularProgress,
-  Snackbar, // Added
-  Alert,    // Added
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import ReCAPTCHA from "react-google-recaptcha";
@@ -27,16 +27,9 @@ const AlumniRegistrationForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
-  
-  // Snackbar State for Messages
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "info", // "error" | "warning" | "info" | "success"
-  });
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "info" });
 
   const navigate = useNavigate();
-
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -47,21 +40,12 @@ const AlumniRegistrationForm = () => {
     confirmPassword: "",
   });
 
-  // Helper to trigger message box
-  const showMessage = (msg, sev = "error") => {
-    setSnackbar({ open: true, message: msg, severity: sev });
-  };
-
-  const handleCloseSnackbar = () => {
-    setSnackbar({ ...snackbar, open: false });
-  };
+  const showMessage = (msg, sev = "error") => setSnackbar({ open: true, message: msg, severity: sev });
+  const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
 
     if (name === "password") {
       setErrors((prev) => ({
@@ -71,37 +55,22 @@ const AlumniRegistrationForm = () => {
           : "Min 6 chars, 1 uppercase, 1 lowercase & 1 special character required",
       }));
     }
-
     if (name === "confirmPassword") {
       setErrors((prev) => ({
         ...prev,
-        confirmPassword:
-          value !== formData.password ? "Passwords do not match" : "",
+        confirmPassword: value !== formData.password ? "Passwords do not match" : "",
       }));
     }
   };
 
-  const handleCaptchaChange = (value) => {
-    setCaptchaVerified(!!value);
-  };
+  const handleCaptchaChange = (value) => setCaptchaVerified(!!value);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!captchaVerified) {
-      showMessage("Please verify the CAPTCHA.", "warning");
-      return;
-    }
-
-    if (!passwordRegex.test(formData.password)) {
-      showMessage("Password does not meet security requirements.", "error");
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      showMessage("Passwords do not match.", "error");
-      return;
-    }
+    if (!captchaVerified) return showMessage("Please verify the CAPTCHA.", "warning");
+    if (!passwordRegex.test(formData.password)) return showMessage("Password does not meet security requirements.", "error");
+    if (formData.password !== formData.confirmPassword) return showMessage("Passwords do not match.", "error");
 
     setIsSubmitting(true);
 
@@ -120,13 +89,24 @@ const AlumniRegistrationForm = () => {
 
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
-      
-      showMessage("Registration successful!", "success");
 
-      // Small delay so user sees the success message before redirect
-      setTimeout(() => {
-        navigate("/");
-      }, 1500);
+      // Save mentor if checked
+      if (formData.isMentor) {
+        const existingMentors = JSON.parse(localStorage.getItem("mentors")) || [];
+        const newMentor = {
+          name: formData.username,
+          role: "Alumni Mentor",
+          company: "N/A",
+          expertise: [],
+          experience: "N/A",
+          avatar: `https://i.pravatar.cc/150?u=${formData.email}`,
+          email: formData.email,
+        };
+        localStorage.setItem("mentors", JSON.stringify([...existingMentors, newMentor]));
+      }
+
+      showMessage("Registration successful!", "success");
+      setTimeout(() => navigate("/mentorship"), 1500);
 
     } catch (error) {
       const errorMsg = error.response?.data?.message || "Server not reachable. Please try again.";
@@ -138,21 +118,18 @@ const AlumniRegistrationForm = () => {
 
   return (
     <Box sx={{ border: "1px solid #ccc", p: 3, borderRadius: 2 }}>
-      {/* --- MSG BOX (Snackbar) --- */}
-      <Snackbar 
-        open={snackbar.open} 
-        autoHideDuration={6000} 
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: "100%" }}>
           {snackbar.message}
         </Alert>
       </Snackbar>
 
-      <Typography variant="h5" gutterBottom>
-        Alumni Registration
-      </Typography>
+      <Typography variant="h5" gutterBottom>Alumni Registration</Typography>
 
       <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
         <Stack spacing={2}>
@@ -208,10 +185,7 @@ const AlumniRegistrationForm = () => {
             }}
           />
 
-          <ReCAPTCHA
-            sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
-            onChange={handleCaptchaChange}
-          />
+          <ReCAPTCHA sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" onChange={handleCaptchaChange} />
 
           <Button
             type="submit"
