@@ -25,7 +25,7 @@ app.use(
 /* ================= ROUTES ================= */
 app.get("/", (req, res) => {
   res.send("Alumni Management API is running...");
-});
+});  
 
 app.use("/api", authRoutes);
 app.use(internshipRoutes);

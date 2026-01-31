@@ -6,3 +6,4 @@ const router = express.Router();
 router.post("/api/alumni/register", registerAlumni);
 
 export default router;
+  

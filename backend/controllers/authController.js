@@ -11,7 +11,7 @@ export const alumniRegister = async (req, res) => {
 
     const existing = await Alumni.findOne({
       $or: [{ email }, { enrollmentNumber }],
-    });
+    });  
 
     if (existing) {
       return res.status(400).json({ message: "Email or Enrollment already registered" });

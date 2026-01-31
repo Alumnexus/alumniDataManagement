@@ -60,7 +60,7 @@ const AdminRegistrationForm = () => {
     if (name === "password") {
       setErrors((prev) => ({
         ...prev,
-        password: passwordRegex.test(value)
+        password: passwordRegex.test(value)   
           ? ""
           : "Password must be 6+ chars with 1 uppercase, 1 lowercase & 1 special character",
       }));
