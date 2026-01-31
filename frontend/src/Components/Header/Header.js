@@ -13,6 +13,8 @@ import {
   IconButton,
   Menu,
   MenuItem,
+  Avatar,
+  Divider,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
@@ -24,98 +26,88 @@ export default function Header() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
-  const location = useLocation(); // Used to trigger re-render on route change
+  const location = useLocation();
 
   const [anchorEl, setAnchorEl] = useState(null);
+  const [avatarAnchor, setAvatarAnchor] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Check login status whenever the route changes
+  const [user, setUser] = useState({
+    name: "",
+    email: "",
+    _id: null,
+  });
+
   useEffect(() => {
     const token = localStorage.getItem("token");
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+
     setIsLoggedIn(!!token);
+    setUser({
+      name: storedUser?.name || "User",
+      email: storedUser?.email || "",
+      _id: storedUser?._id || null,
+    });
   }, [location]);
 
   const handleMenu = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
 
+  const handleAvatarOpen = (event) => setAvatarAnchor(event.currentTarget);
+  const handleAvatarClose = () => setAvatarAnchor(null);
+
   const handleLogout = () => {
-    // 1. Remove data from browser storage
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-
-    // 2. Update local state to trigger UI change
     setIsLoggedIn(false);
-
-    // 3. Close the mobile menu if it's open
-    handleClose();
-
-    // 4. Redirect the user
+    handleAvatarClose();
     navigate("/");
   };
 
   return (
     <>
-      <AppBar
-        position="static"
-        sx={{ backgroundColor: "#0D47A1", justifyContent: "center" }}
-      >
-        <Toolbar
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            height: 80,
-          }}
-        >
-          {/* Left */}
+      <AppBar position="static" sx={{ backgroundColor: "#0D47A1" }}>
+        <Toolbar sx={{ display: "flex", justifyContent: "space-between", height: 80 }}>
+          {/* LEFT */}
           <Box sx={{ display: "flex", alignItems: "center" }}>
-            <img
-              src={logo}
-              alt="Website Logo"
-              style={{ height: 50, marginRight: 15 }}
-            />
+            <img src={logo} alt="Logo" style={{ height: 50, marginRight: 15 }} />
             <Typography
               variant="h5"
               component={Link}
               to="/"
-              sx={{
-                textDecoration: "none",
-                color: "#fff",
-                fontWeight: "bold",
-              }}
+              sx={{ textDecoration: "none", color: "#fff", fontWeight: "bold" }}
             >
               Alumnexus
             </Typography>
           </Box>
 
-          {/* Right */}
+          {/* RIGHT */}
           {isMobile ? (
             <>
-              <IconButton
-                color="inherit"
-                onClick={handleMenu}
-                sx={{ ml: 1 }}
-              >
+              <IconButton color="inherit" onClick={handleMenu}>
                 <MenuIcon />
               </IconButton>
-              <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={handleClose}
-              >
-                <MenuItem component={Link} to="/" onClick={handleClose}>Home</MenuItem>
-                <MenuItem component={Link} to="/about" onClick={handleClose}>About</MenuItem>
-                
-                {/* Mobile Conditional Login/Logout */}
+
+              <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
+                <MenuItem component={Link} to="/" onClick={handleClose}>
+                  Home
+                </MenuItem>
+                <MenuItem component={Link} to="/about" onClick={handleClose}>
+                  About
+                </MenuItem>
+
                 {!isLoggedIn ? (
-                  <MenuItem component={Link} to="/login" onClick={handleClose}>Login</MenuItem>
+                  <MenuItem component={Link} to="/login" onClick={handleClose}>
+                    Login
+                  </MenuItem>
                 ) : (
                   <MenuItem onClick={handleLogout}>Logout</MenuItem>
                 )}
               </Menu>
             </>
           ) : (
-            <Box sx={{ display: "flex", gap: 2 }}>
+            <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+              {/* Home */}
               <Button
                 component={Link}
                 to="/"
@@ -123,17 +115,30 @@ export default function Header() {
                 variant="contained"
                 sx={{
                   background: "linear-gradient(135deg, #00B0FF, #2979FF)",
-                  color: "#fff",
-                  fontWeight: "bold",
-                  px: 3.5,
                   borderRadius: "999px",
+                  px: 3,
                   textTransform: "none",
                 }}
               >
                 Home
               </Button>
 
-              {/* Desktop Conditional Login/Logout */}
+              {/* About */}
+              <Button
+                component={Link}
+                to="/about"
+                variant="contained"
+                sx={{
+                  background: "linear-gradient(135deg, #2E7D32, #66BB6A)",
+                  borderRadius: "999px",
+                  px: 3,
+                  textTransform: "none",
+                }}
+              >
+                About
+              </Button>
+
+              {/* Login OR Avatar */}
               {!isLoggedIn ? (
                 <Button
                   component={Link}
@@ -141,60 +146,68 @@ export default function Header() {
                   variant="contained"
                   sx={{
                     background: "linear-gradient(135deg, #FF6F00, #FF8F00)",
-                    color: "#fff",
-                    fontWeight: "bold",
-                    px: 3,
                     borderRadius: "999px",
+                    px: 3,
                     textTransform: "none",
-                    boxShadow: "0 4px 10px rgba(255,111,0,0.5)",
-                    "&:hover": { transform: "translateY(-2px)" },
                   }}
                 >
                   Login
                 </Button>
               ) : (
-                <Button
-                  onClick={handleLogout}
-                  variant="contained"
-                  startIcon={<LogoutIcon />}
-                  sx={{
-                    background: "linear-gradient(135deg, #d32f2f, #f44336)",
-                    color: "#fff",
-                    fontWeight: "bold",
-                    px: 3,
-                    borderRadius: "999px",
-                    textTransform: "none",
-                    boxShadow: "0 4px 10px rgba(211, 47, 47, 0.4)",
-                    "&:hover": {
-                      background: "linear-gradient(135deg, #b71c1c, #d32f2f)",
-                      transform: "translateY(-2px)",
-                    },
-                  }}
-                >
-                  Logout
-                </Button>
-              )}
+                <>
+                  {/* CLICKABLE AVATAR */}
+                  <IconButton onClick={handleAvatarOpen}>
+                    <Avatar sx={{ bgcolor: "#FF8F00", fontWeight: "bold" }}>
+                      {user._id?.charAt(0).toUpperCase() || "U"}
+                    </Avatar>
+                  </IconButton>
 
-              <Button
-                component={Link}
-                to="/about"
-                variant="contained"
-                sx={{
-                  background: "linear-gradient(135deg, #2E7D32, #66BB6A)",
-                  color: "#fff",
-                  fontWeight: "bold",
-                  px: 3,
-                  borderRadius: "999px",
-                  textTransform: "none",
-                }}
-              >
-                About
-              </Button>
+                  {/* AVATAR MENU */}
+                  <Menu
+                    anchorEl={avatarAnchor}
+                    open={Boolean(avatarAnchor)}
+                    onClose={handleAvatarClose}
+                    anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                    transformOrigin={{ vertical: "top", horizontal: "right" }}
+                  >
+                    {/* Large Clear Avatar */}
+                    <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+                      <Avatar
+                        sx={{
+                          bgcolor: "#FF8F00",
+                          width: 70,
+                          height: 70,
+                          fontSize: 36,
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {user._id?.charAt(0).toUpperCase() || "U"}
+                      </Avatar>
+                    </Box>
+
+                    {/* User ID Display */}
+                    <Box textAlign="center" sx={{ px: 2, pb: 1 }}>
+                      <Typography fontWeight="bold">User ID: {user._id || "N/A"}</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Email: {user.email}
+                      </Typography>
+                    </Box>
+
+                    <Divider />
+
+                    <MenuItem onClick={handleLogout}>
+                      <LogoutIcon sx={{ mr: 1 }} />
+                      Logout
+                    </MenuItem>
+                  </Menu>
+                </>
+              )}
             </Box>
           )}
         </Toolbar>
       </AppBar>
 
+      {/* ROUTES */}
       <Routes>
         <Route path="/about" element={<About />} />
         <Route path="/login" element={<Login />} />
