@@ -13,12 +13,40 @@ import {
   Modal,
   CircularProgress,
   Popover,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  List,
+  ListItem,
+  ListItemAvatar,
+  Avatar,
+  ListItemText,
+  Divider,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import CloseIcon from "@mui/icons-material/Close";
 import EventRegisterForm from "./ReletedForm/EventRegisterForm";
 import AlertMessage from "../Utils/AlertMessage";
 import axios from "axios";
 import { backendAPI } from "../middleware.js";
+
+/**
+ * EventsPage.jsx
+ *
+ * Added feature:
+ *  - Organiser can view list of participants for each event via "View Participants" button
+ *  - Clicking a participant shows a detailed participant dialog
+ *
+ * Notes:
+ *  - This code attempts to detect the current user from the backend via /api/auth/me;
+ *    it falls back to `localStorage.getItem("user")` if available.
+ *  - Expected backend endpoints (adjust if your API uses different paths):
+ *      GET  `${api}/api/get/event`                     (already used)
+ *      GET  `${api}/api/events/${eventId}/participants`  -> returns array of participant objects
+ *      GET  `${api}/api/auth/me`                       -> current user (optional)
+ *  - Requests include Authorization header if `localStorage.getItem("token")` is present.
+ */
 
 export default function EventsPage() {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -29,19 +57,39 @@ export default function EventsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Hover states
+  // Hover popover states (unchanged)
   const [hoverAnchorEl, setHoverAnchorEl] = useState(null);
   const [hoverEvent, setHoverEvent] = useState(null);
+
+  // Participant-listing states
+  const [participantsDialogOpen, setParticipantsDialogOpen] = useState(false);
+  const [participantsLoading, setParticipantsLoading] = useState(false);
+  const [participants, setParticipants] = useState([]);
+  const [participantsError, setParticipantsError] = useState(null);
+
+  // Participant detail dialog
+  const [participantDetailOpen, setParticipantDetailOpen] = useState(false);
+  const [selectedParticipant, setSelectedParticipant] = useState(null);
+
+  // Current user (organiser detection)
+  const [currentUser, setCurrentUser] = useState(null);
 
   const navigate = useNavigate();
   const location = useLocation();
   const open = Boolean(anchorEl);
 
+  const api = backendAPI();
+
+  // Attach token if available
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("token");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+
   const findEventData = async () => {
     try {
       setLoading(true);
-      const api = backendAPI();
-      const res = await axios.get(`${api}/api/get/event`);
+      const res = await axios.get(`${api}/api/get/event`, { headers: getAuthHeaders() });
       setEvents(res.data.data || []);
     } catch (err) {
       setError("Failed to load events. Please try again later.");
@@ -50,8 +98,26 @@ export default function EventsPage() {
     }
   };
 
+  // Try to fetch current user (optional). Fallback to localStorage "user".
+  const loadCurrentUser = async () => {
+    try {
+      const res = await axios.get(`${api}/api/auth/me`, { headers: getAuthHeaders() });
+      if (res?.data) setCurrentUser(res.data);
+    } catch (err) {
+      // fallback to localStorage if available
+      try {
+        const stored = localStorage.getItem("user");
+        if (stored) setCurrentUser(JSON.parse(stored));
+      } catch (e) {
+        setCurrentUser(null);
+      }
+    }
+  };
+
   useEffect(() => {
+    loadCurrentUser();
     findEventData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -68,6 +134,51 @@ export default function EventsPage() {
     selectedCategory === "All"
       ? events
       : events.filter((event) => event.category === selectedCategory);
+
+  // Helper to check if current user is the organiser of an event.
+  // Tries multiple possible organizer fields (adjust as per your backend).
+  const isOrganizerOf = (event) => {
+    if (!currentUser) return false;
+    const id = currentUser._id || currentUser.id || currentUser?.userId;
+    const email = currentUser.email;
+    return (
+      id &&
+        (event.organizer === id ||
+          event.organizerId === id ||
+          event.organizerId === event.organizer ||
+          event.organiserId === id) ||
+      (email && (event.organizerEmail === email || event.organiserEmail === email))
+    );
+  };
+
+  // Fetch participants for a given event -> open dialog
+  const handleViewParticipants = async (eventId) => {
+    try {
+      setParticipants([]);
+      setParticipantsError(null);
+      setParticipantsLoading(true);
+      setParticipantsDialogOpen(true);
+
+      // Adjust endpoint to match your backend. Example used here:
+      const res = await axios.get(`${api}/api/events/${eventId}/participants`, {
+        headers: getAuthHeaders(),
+      });
+
+      // Expecting res.data.participants or res.data.data
+      const data = res?.data?.participants ?? res?.data?.data ?? res?.data ?? [];
+      setParticipants(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Failed to fetch participants:", err);
+      setParticipantsError("Failed to load participants. Try again or check permissions.");
+    } finally {
+      setParticipantsLoading(false);
+    }
+  };
+
+  const handleOpenParticipantDetail = (participant) => {
+    setSelectedParticipant(participant);
+    setParticipantDetailOpen(true);
+  };
 
   if (loading) {
     return (
@@ -152,33 +263,44 @@ export default function EventsPage() {
                   </Typography>
                   <Typography>📅 {new Date(event.date).toLocaleDateString()}</Typography>
                   <Typography>📍 {event.location}</Typography>
-                  <Typography sx={{ color: "#777", mb: 2 }}>
-                    {event.description}
-                  </Typography>
+                  <Typography sx={{ color: "#777", mb: 2 }}>{event.description}</Typography>
 
-                  {/* REGISTER BUTTON */}
-                  <Button
-                    variant="contained"
-                    sx={{
-                      backgroundColor: "#1976D2",
-                      "&:hover": { backgroundColor: "#1565C0" },
-                      textTransform: "none",
-                    }}
-                    onMouseEnter={(e) => {
-                      setHoverAnchorEl(e.currentTarget);
-                      setHoverEvent(event);
-                    }}
-                    onClick={() => setOpenRegisterModal(true)}
-                  >
-                    Register
-                  </Button>
+                  <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap" }}>
+                    {/* REGISTER BUTTON */}
+                    <Button
+                      variant="contained"
+                      sx={{
+                        backgroundColor: "#1976D2",
+                        "&:hover": { backgroundColor: "#1565C0" },
+                        textTransform: "none",
+                      }}
+                      onMouseEnter={(e) => {
+                        setHoverAnchorEl(e.currentTarget);
+                        setHoverEvent(event);
+                      }}
+                      onClick={() => setOpenRegisterModal(true)}
+                    >
+                      Register
+                    </Button>
 
-                  {/* HOVER DETAILS CARD */}
+                    {/* If current user is the organiser, show View Participants */}
+                    {isOrganizerOf(event) && (
+                      <Button
+                        variant="outlined"
+                        sx={{ textTransform: "none" }}
+                        onClick={() => handleViewParticipants(event._id)}
+                      >
+                        View Participants
+                      </Button>
+                    )}
+                  </Box>
+
+                  {/* HOVER DETAILS CARD (unchanged UX fixes applied) */}
                   <Popover
                     open={Boolean(hoverAnchorEl) && hoverEvent?._id === event._id}
                     anchorEl={hoverAnchorEl}
                     disableRestoreFocus
-                    sx={{ pointerEvents: "none" }}   // ⭐ button stays clickable
+                    sx={{ pointerEvents: "none" }} // allow clicks to pass to button beneath
                     anchorOrigin={{
                       vertical: "top",
                       horizontal: "center",
@@ -231,6 +353,138 @@ export default function EventsPage() {
         <Modal open={openRegisterModal} onClose={() => setOpenRegisterModal(false)}>
           <EventRegisterForm onClose={() => setOpenRegisterModal(false)} />
         </Modal>
+
+        {/* PARTICIPANTS DIALOG (organiser only) */}
+        <Dialog
+          open={participantsDialogOpen}
+          onClose={() => {
+            setParticipantsDialogOpen(false);
+            setParticipants([]);
+            setParticipantsError(null);
+          }}
+          fullWidth
+          maxWidth="sm"
+        >
+          <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            Participants
+            <IconButton
+              onClick={() => {
+                setParticipantsDialogOpen(false);
+                setParticipants([]);
+                setParticipantsError(null);
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+
+          <DialogContent dividers>
+            {participantsLoading ? (
+              <Box sx={{ display: "flex", justifyContent: "center", my: 4 }}>
+                <CircularProgress />
+              </Box>
+            ) : participantsError ? (
+              <Typography color="error">{participantsError}</Typography>
+            ) : participants.length === 0 ? (
+              <Typography>No participants registered yet.</Typography>
+            ) : (
+              <List>
+                {participants.map((p) => (
+                  <React.Fragment key={p._id || p.id || p.email}>
+                    <ListItem
+                      secondaryAction={
+                        <IconButton edge="end" onClick={() => handleOpenParticipantDetail(p)}>
+                          <VisibilityIcon />
+                        </IconButton>
+                      }
+                    >
+                      <ListItemAvatar>
+                        <Avatar src={p.avatar || p.photo} alt={p.name || p.fullName || p.email}>
+                          {p.name ? p.name.charAt(0).toUpperCase() : p.email?.charAt(0)?.toUpperCase()}
+                        </Avatar>
+                      </ListItemAvatar>
+
+                      <ListItemText
+                        primary={p.name || p.fullName || p.email}
+                        secondary={
+                          <>
+                            <Typography component="span" variant="body2" color="text.primary">
+                              {p.email}
+                            </Typography>
+                            {p.phone ? ` — ${p.phone}` : ""}
+                          </>
+                        }
+                      />
+                    </ListItem>
+                    <Divider component="li" />
+                  </React.Fragment>
+                ))}
+              </List>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* PARTICIPANT DETAIL DIALOG */}
+        <Dialog
+          open={participantDetailOpen}
+          onClose={() => {
+            setParticipantDetailOpen(false);
+            setSelectedParticipant(null);
+          }}
+          fullWidth
+          maxWidth="sm"
+        >
+          <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            Participant Details
+            <IconButton
+              onClick={() => {
+                setParticipantDetailOpen(false);
+                setSelectedParticipant(null);
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+
+          <DialogContent dividers>
+            {selectedParticipant ? (
+              <Box>
+                <Box sx={{ display: "flex", gap: 2, alignItems: "center", mb: 2 }}>
+                  <Avatar
+                    src={selectedParticipant.avatar || selectedParticipant.photo}
+                    sx={{ width: 72, height: 72 }}
+                  >
+                    {(selectedParticipant.name || selectedParticipant.email || "U").charAt(0).toUpperCase()}
+                  </Avatar>
+                  <Box>
+                    <Typography variant="h6">{selectedParticipant.name || selectedParticipant.fullName || "Unknown"}</Typography>
+                    <Typography variant="body2">{selectedParticipant.email}</Typography>
+                    {selectedParticipant.phone && <Typography variant="body2">{selectedParticipant.phone}</Typography>}
+                  </Box>
+                </Box>
+
+                {/* Add any other participant fields your backend provides */}
+                {selectedParticipant.college && (
+                  <Typography><b>College:</b> {selectedParticipant.college}</Typography>
+                )}
+                {selectedParticipant.registrationDate && (
+                  <Typography>
+                    <b>Registered on:</b>{" "}
+                    {new Date(selectedParticipant.registrationDate).toLocaleString()}
+                  </Typography>
+                )}
+                {selectedParticipant.fields && (
+                  <Box mt={1}>
+                    <Typography><b>Other details</b></Typography>
+                    <Typography variant="body2">{JSON.stringify(selectedParticipant.fields)}</Typography>
+                  </Box>
+                )}
+              </Box>
+            ) : (
+              <Typography>No participant selected.</Typography>
+            )}
+          </DialogContent>
+        </Dialog>
       </Box>
     </>
   );
