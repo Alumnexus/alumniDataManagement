@@ -31,7 +31,6 @@ import AlertMessage from "../Utils/AlertMessage";
 import axios from "axios";
 import { backendAPI } from "../middleware.js";
 
-
 export default function EventsPage() {
   const [anchorEl, setAnchorEl] = useState(null);
   const [openRegisterModal, setOpenRegisterModal] = useState(false);
@@ -41,7 +40,7 @@ export default function EventsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Hover popover states (unchanged)
+  // Hover popover states
   const [hoverAnchorEl, setHoverAnchorEl] = useState(null);
   const [hoverEvent, setHoverEvent] = useState(null);
 
@@ -55,7 +54,7 @@ export default function EventsPage() {
   const [participantDetailOpen, setParticipantDetailOpen] = useState(false);
   const [selectedParticipant, setSelectedParticipant] = useState(null);
 
-  // Current user (organiser detection)
+  // Current user
   const [currentUser, setCurrentUser] = useState(null);
 
   const navigate = useNavigate();
@@ -64,7 +63,6 @@ export default function EventsPage() {
 
   const api = backendAPI();
 
-  // Attach token if available
   const getAuthHeaders = () => {
     const token = localStorage.getItem("token");
     return token ? { Authorization: `Bearer ${token}` } : {};
@@ -82,13 +80,11 @@ export default function EventsPage() {
     }
   };
 
-  // Try to fetch current user (optional). Fallback to localStorage "user".
   const loadCurrentUser = async () => {
     try {
       const res = await axios.get(`${api}/api/auth/me`, { headers: getAuthHeaders() });
       if (res?.data) setCurrentUser(res.data);
     } catch (err) {
-      // fallback to localStorage if available
       try {
         const stored = localStorage.getItem("user");
         if (stored) setCurrentUser(JSON.parse(stored));
@@ -105,33 +101,16 @@ export default function EventsPage() {
   }, []);
 
   useEffect(() => {
-    // 1. Handle alert messages (like "Login Successful")
-    if (location.state?.message) {
-      setNotification({
-        message: location.state.message,
-        type: location.state.type || "success",
-      });
-    }
-
-    // 2. Automatically open the modal if the user just logged in to register
-    if (location.state?.openRegister) {
-      setOpenRegisterModal(true);
-    }
-
-    // 3. CLEANUP: Clear the location state. 
-    // This prevents the modal from popping up again if the user refreshes the page.
-    if (location.state) {
-      navigate(location.pathname, { replace: true, state: {} });
-    }
-  }, [location, navigate]);
-
-  useEffect(() => {
     if (location.state?.message) {
       setNotification({
         message: location.state.message,
         type: location.state.type || "success",
       });
       navigate(location.pathname, { replace: true });
+    }
+
+    if (location.state?.openRegister) {
+      setOpenRegisterModal(true);
     }
   }, [location, navigate]);
 
@@ -140,8 +119,6 @@ export default function EventsPage() {
       ? events
       : events.filter((event) => event.category === selectedCategory);
 
-  // Helper to check if current user is the organiser of an event.
-  // Tries multiple possible organizer fields (adjust as per your backend).
   const isOrganizerOf = (event) => {
     if (!currentUser) return false;
     const id = currentUser._id || currentUser.id || currentUser?.userId;
@@ -156,7 +133,6 @@ export default function EventsPage() {
     );
   };
 
-  // Fetch participants for a given event -> open dialog
   const handleViewParticipants = async (eventId) => {
     try {
       setParticipants([]);
@@ -164,12 +140,10 @@ export default function EventsPage() {
       setParticipantsLoading(true);
       setParticipantsDialogOpen(true);
 
-      // Adjust endpoint to match your backend. Example used here:
       const res = await axios.get(`${api}/api/events/${eventId}/participants`, {
         headers: getAuthHeaders(),
       });
 
-      // Expecting res.data.participants or res.data.data
       const data = res?.data?.participants ?? res?.data?.data ?? res?.data ?? [];
       setParticipants(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -233,14 +207,14 @@ export default function EventsPage() {
             ))}
           </Menu>
 
-          {(currentUser?.role === "alumni" || 
-            currentUser?.role === "admin" || 
-            currentUser?.permission === "Faculty" || 
+          {(currentUser?.role === "alumni" ||
+            currentUser?.role === "admin" ||
+            currentUser?.permission === "Faculty" ||
             currentUser?.permission === "Admin") && (
             <Button
               variant="contained"
-              sx={{ 
-                backgroundColor: "#1976D2", 
+              sx={{
+                backgroundColor: "#1976D2",
                 "&:hover": { backgroundColor: "#1565C0" },
                 textTransform: "none",
                 fontWeight: "bold"
@@ -293,11 +267,9 @@ export default function EventsPage() {
                         setHoverAnchorEl(e.currentTarget);
                         setHoverEvent(event);
                       }}
-                      // onClick={() => setOpenRegisterModal(true)}
                       onClick={() => {
                         const token = localStorage.getItem("token");
                         if (!token) {
-                          // Not logged in: Redirect to login and save the intent to register
                           navigate("/login", { 
                             state: { 
                               from: location.pathname, 
@@ -306,7 +278,6 @@ export default function EventsPage() {
                             } 
                           });
                         } else {
-                          // Logged in: Open modal as usual
                           setOpenRegisterModal(true);
                         }
                       }}
@@ -314,8 +285,8 @@ export default function EventsPage() {
                       Register
                     </Button>
 
-                    {/* If current user is the organiser, show View Participants */}
-                    {isOrganizerOf(event) && (
+                    {/* VIEW PARTICIPANTS BUTTON (only for organizers NOT students) */}
+                    {isOrganizerOf(event) && currentUser?.role !== "student" && (
                       <Button
                         variant="outlined"
                         sx={{ textTransform: "none" }}
@@ -326,20 +297,14 @@ export default function EventsPage() {
                     )}
                   </Box>
 
-                  {/* HOVER DETAILS CARD (unchanged UX fixes applied) */}
+                  {/* HOVER DETAILS POPOVER */}
                   <Popover
                     open={Boolean(hoverAnchorEl) && hoverEvent?._id === event._id}
                     anchorEl={hoverAnchorEl}
                     disableRestoreFocus
-                    sx={{ pointerEvents: "none" }} // allow clicks to pass to button beneath
-                    anchorOrigin={{
-                      vertical: "top",
-                      horizontal: "center",
-                    }}
-                    transformOrigin={{
-                      vertical: "bottom",
-                      horizontal: "center",
-                    }}
+                    sx={{ pointerEvents: "none" }}
+                    anchorOrigin={{ vertical: "top", horizontal: "center" }}
+                    transformOrigin={{ vertical: "bottom", horizontal: "center" }}
                     PaperProps={{
                       sx: {
                         p: 2,
@@ -356,21 +321,11 @@ export default function EventsPage() {
                   >
                     {hoverEvent && (
                       <>
-                        <Typography variant="h6" fontWeight="bold">
-                          {hoverEvent.title}
-                        </Typography>
-                        <Typography variant="body2">
-                          <b>Date:</b> {new Date(hoverEvent.date).toLocaleDateString()}
-                        </Typography>
-                        <Typography variant="body2">
-                          <b>Location:</b> {hoverEvent.location}
-                        </Typography>
-                        <Typography variant="body2">
-                          <b>Category:</b> {hoverEvent.category}
-                        </Typography>
-                        <Typography variant="body2" sx={{ mt: 1 }}>
-                          {hoverEvent.description}
-                        </Typography>
+                        <Typography variant="h6" fontWeight="bold">{hoverEvent.title}</Typography>
+                        <Typography variant="body2"><b>Date:</b> {new Date(hoverEvent.date).toLocaleDateString()}</Typography>
+                        <Typography variant="body2"><b>Location:</b> {hoverEvent.location}</Typography>
+                        <Typography variant="body2"><b>Category:</b> {hoverEvent.category}</Typography>
+                        <Typography variant="body2" sx={{ mt: 1 }}>{hoverEvent.description}</Typography>
                       </>
                     )}
                   </Popover>
@@ -385,7 +340,7 @@ export default function EventsPage() {
           <EventRegisterForm onClose={() => setOpenRegisterModal(false)} />
         </Modal>
 
-        {/* PARTICIPANTS DIALOG (organiser only) */}
+        {/* PARTICIPANTS DIALOG */}
         <Dialog
           open={participantsDialogOpen}
           onClose={() => {
@@ -494,7 +449,6 @@ export default function EventsPage() {
                   </Box>
                 </Box>
 
-                {/* Add any other participant fields your backend provides */}
                 {selectedParticipant.college && (
                   <Typography><b>College:</b> {selectedParticipant.college}</Typography>
                 )}

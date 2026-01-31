@@ -41,10 +41,11 @@ export default function Header() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     const storedUser = JSON.parse(localStorage.getItem("user"));
+    console.log(storedUser);
 
     setIsLoggedIn(!!token);
     setUser({
-      name: storedUser?.name || "User",
+      name: storedUser?.username || "User",
       email: storedUser?.email || "",
       _id: storedUser?._id || null,
     });
@@ -158,7 +159,7 @@ export default function Header() {
                   {/* CLICKABLE AVATAR */}
                   <IconButton onClick={handleAvatarOpen}>
                     <Avatar sx={{ bgcolor: "#FF8F00", fontWeight: "bold" }}>
-                      {user._id?.charAt(0).toUpperCase() || "U"}
+                      {user.name?.charAt(0).toUpperCase() || "U"}
                     </Avatar>
                   </IconButton>
 
@@ -170,6 +171,9 @@ export default function Header() {
                     anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
                     transformOrigin={{ vertical: "top", horizontal: "right" }}
                   >
+                    <Typography variant="body2" color="text.secondary">
+                      Email: {user.email}
+                    </Typography>
                     {/* Large Clear Avatar */}
                     <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
                       <Avatar
@@ -181,16 +185,13 @@ export default function Header() {
                           fontWeight: "bold",
                         }}
                       >
-                        {user._id?.charAt(0).toUpperCase() || "U"}
+                        {user.name?.charAt(0).toUpperCase() || "U"}
                       </Avatar>
                     </Box>
 
                     {/* User ID Display */}
                     <Box textAlign="center" sx={{ px: 2, pb: 1 }}>
-                      <Typography fontWeight="bold">User ID: {user._id || "N/A"}</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Email: {user.email}
-                      </Typography>
+                      <Typography fontWeight="bold">Username: {user.name || "N/A"}</Typography>
                     </Box>
 
                     <Divider />
