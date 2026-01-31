@@ -98,7 +98,7 @@ export const studentRegister = async (req, res) => {
     const { username, email, enrollmentNumber, linkedIn, password } = req.body;
 
     const existing = await Student.findOne({
-      $or: [{ email }, { enrollmentNumber }],
+      $or: [{ email }, { enrollmentNumber }],  
     });
 
     if (existing) {
