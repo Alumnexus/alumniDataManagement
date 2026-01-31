@@ -11,8 +11,8 @@ import {
 } from "@mui/material";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import WorkOutlineIcon from "@mui/icons-material/WorkOutline";
-import SchoolIcon from "@mui/icons-material/School";
 import BusinessCenterIcon from "@mui/icons-material/BusinessCenter";
+import FavoriteIcon from "@mui/icons-material/Favorite"; // Heart icon for donation
 
 // Sample Alumni Data
 const alumniList = [
@@ -74,18 +74,47 @@ export default function AlumniDirectoryPage() {
         minHeight: "100vh",
       }}
     >
-      {/* Page Title */}
-      <Typography
-        variant="h3"
+      {/* Header with Title + Donation Button */}
+      <Box
         sx={{
-          textAlign: "center",
-          color: "#0D47A1",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
           mb: 4,
-          fontWeight: "bold",
+          flexWrap: "wrap",
         }}
       >
-        Alumni Directory
-      </Typography>
+        <Typography
+          variant="h3"
+          sx={{
+            color: "#0D47A1",
+            fontWeight: "bold",
+          }}
+        >
+          Alumni Directory
+        </Typography>
+
+        <Button
+  variant="contained"
+  startIcon={<FavoriteIcon />}
+  sx={{
+    textTransform: "none",
+    fontWeight: "bold",
+    fontSize: "1.8rem", // Increased font size
+    padding: "10px 20px", // Slightly larger padding
+    background: "linear-gradient(45deg, #FF6B6B, #FF3D00)",
+    "&:hover": {
+      background: "linear-gradient(45deg, #FF3D00, #FF6B6B)",
+      transform: "scale(1.05)",
+    },
+    boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
+  }}
+  onClick={() => window.location.href = "/donate"} // Replace with your donation page URL
+>
+  Donate
+</Button>
+
+      </Box>
 
       {/* Search Bar */}
       <Box sx={{ display: "flex", justifyContent: "center", mb: 5 }}>
@@ -143,10 +172,7 @@ export default function AlumniDirectoryPage() {
                   >
                     {alumni.name}
                   </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{ color: "#777", mb: 1 }}
-                  >
+                  <Typography variant="body2" sx={{ color: "#777", mb: 1 }}>
                     {alumni.department} • Class of {alumni.graduationYear}
                   </Typography>
 
