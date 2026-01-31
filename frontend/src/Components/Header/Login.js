@@ -9,6 +9,10 @@ import {
   Paper,
   IconButton,
   InputAdornment,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 
@@ -16,6 +20,7 @@ export default function Login() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    role: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -36,7 +41,7 @@ export default function Login() {
     e.preventDefault();
     console.log("Form Submitted:", formData);
 
-    setFormData({ email: "", password: "" });
+    setFormData({ email: "", password: "", role: "" });
     setShowPassword(false);
   };
 
@@ -75,6 +80,21 @@ export default function Login() {
             marginTop: 2,
           }}
         >
+          {/* Login As Dropdown */}
+          <FormControl fullWidth required>
+            <InputLabel>Login As</InputLabel>
+            <Select
+              name="role"
+              value={formData.role}
+              label="Login As"
+              onChange={handleChange}
+            >
+              <MenuItem value="student">Student</MenuItem>
+              <MenuItem value="admin">Admin</MenuItem>
+              <MenuItem value="alumni">Alumni</MenuItem>
+            </Select>
+          </FormControl>
+
           <TextField
             label="Email"
             variant="outlined"

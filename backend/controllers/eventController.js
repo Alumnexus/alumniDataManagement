@@ -16,3 +16,52 @@ export const getEvents = async (req, res) => {
     });
   }
 };
+
+
+export const createEvent = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "Event file is required." });
+    }
+
+    const {
+      title,
+      description,
+      date,
+      location,
+      maxAttendees,
+      organization,
+      category,
+      visibility,
+    } = req.body;
+
+    const newEvent = new Event({
+      title,
+      description,
+      date,
+      location,
+      maxAttendees: maxAttendees ? parseInt(maxAttendees) : 0,
+      organization,
+      category,
+      visibility,
+      eventFileUrl: req.file.path,
+    });
+
+    await newEvent.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Event created successfully!",
+      data: newEvent,
+    });
+  } catch (error) {
+    console.error("Event Controller Error:", error);
+
+    if (error.name === "ValidationError") {
+      const messages = Object.values(error.errors).map(e => e.message);
+      return res.status(400).json({ error: messages.join(", ") });
+    }
+
+    res.status(500).json({ error: "Internal Server Error." });
+  }
+};
