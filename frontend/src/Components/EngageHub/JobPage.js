@@ -28,6 +28,8 @@ export default function JobPage() {
   const [currentFilter, setCurrentFilter] = useState("All");
   const [jobs, setJobs] = useState([]);
 
+  const [userRole, setUserRole] = useState(null);
+
   // Popover state
   const [popoverAnchor, setPopoverAnchor] = useState(null);
   const [popoverJob, setPopoverJob] = useState(null);
@@ -38,6 +40,16 @@ export default function JobPage() {
     setCurrentFilter(skill);
     handleMenuClose();
   };
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+    if (savedUser) {
+      const user = JSON.parse(savedUser);
+      setUserRole(user.role); 
+    } else {
+      setUserRole(null); // Explicitly null if not logged in
+    }
+  }, [location]);
 
   const findinternData = async () => {
     try {
@@ -95,21 +107,23 @@ export default function JobPage() {
               </MenuItem>
             ))}
           </Menu>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            sx={{
-              backgroundColor: "#FF6F00",
-              "&:hover": { backgroundColor: "#FF8F00" },
-              textTransform: "none",
-              fontWeight: "bold",
-              py: 1,
-              px: 2
-            }}
-            onClick={handleAddBtn}
-          >
-            Add Job
-          </Button>
+          {userRole === "alumni" && (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              sx={{
+                backgroundColor: "#FF6F00",
+                "&:hover": { backgroundColor: "#FF8F00" },
+                textTransform: "none",
+                fontWeight: "bold",
+                py: 1,
+                px: 2
+              }}
+              onClick={handleAddBtn}
+            >
+              Add Job
+            </Button>
+          )}
         </Stack>
       </Box>
 
@@ -137,15 +151,17 @@ export default function JobPage() {
                 <Typography sx={{ mb: 2, color: job.type === "Full-Time" ? "#43A047" : "#FF6F00", fontWeight: "bold" }}>
                   {job.type} — {job.skill}
                 </Typography>
-                <Button
-                  variant="contained"
-                  sx={{ backgroundColor: "#FF6F00", "&:hover": { backgroundColor: "#FF8F00" } }}
-                  onClick={() => handleApplyClick(job)}
-                  onMouseEnter={(e) => handlePopoverOpen(e, job)}
-                  onMouseLeave={handlePopoverClose}
-                >
-                  Apply Now
-                </Button>
+                {userRole === "student" && (
+                  <Button
+                    variant="contained"
+                    sx={{ backgroundColor: "#FF6F00", "&:hover": { backgroundColor: "#FF8F00" } }}
+                    onClick={() => handleApplyClick(job)}
+                    onMouseEnter={(e) => handlePopoverOpen(e, job)}
+                    onMouseLeave={handlePopoverClose}
+                  >
+                    Apply Now
+                  </Button>
+                )}
               </CardContent>
             </Card>
           </Grid>

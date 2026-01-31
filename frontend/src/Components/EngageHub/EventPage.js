@@ -31,22 +31,6 @@ import AlertMessage from "../Utils/AlertMessage";
 import axios from "axios";
 import { backendAPI } from "../middleware.js";
 
-/**
- * EventsPage.jsx
- *
- * Added feature:
- *  - Organiser can view list of participants for each event via "View Participants" button
- *  - Clicking a participant shows a detailed participant dialog
- *
- * Notes:
- *  - This code attempts to detect the current user from the backend via /api/auth/me;
- *    it falls back to `localStorage.getItem("user")` if available.
- *  - Expected backend endpoints (adjust if your API uses different paths):
- *      GET  `${api}/api/get/event`                     (already used)
- *      GET  `${api}/api/events/${eventId}/participants`  -> returns array of participant objects
- *      GET  `${api}/api/auth/me`                       -> current user (optional)
- *  - Requests include Authorization header if `localStorage.getItem("token")` is present.
- */
 
 export default function EventsPage() {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -119,6 +103,27 @@ export default function EventsPage() {
     findEventData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    // 1. Handle alert messages (like "Login Successful")
+    if (location.state?.message) {
+      setNotification({
+        message: location.state.message,
+        type: location.state.type || "success",
+      });
+    }
+
+    // 2. Automatically open the modal if the user just logged in to register
+    if (location.state?.openRegister) {
+      setOpenRegisterModal(true);
+    }
+
+    // 3. CLEANUP: Clear the location state. 
+    // This prevents the modal from popping up again if the user refreshes the page.
+    if (location.state) {
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location, navigate]);
 
   useEffect(() => {
     if (location.state?.message) {
@@ -228,13 +233,23 @@ export default function EventsPage() {
             ))}
           </Menu>
 
-          <Button
-            variant="contained"
-            sx={{ backgroundColor: "#1976D2", "&:hover": { backgroundColor: "#1565C0" } }}
-            onClick={() => navigate("/add-event")}
-          >
-            Add Event
-          </Button>
+          {(currentUser?.role === "alumni" || 
+            currentUser?.role === "admin" || 
+            currentUser?.permission === "Faculty" || 
+            currentUser?.permission === "Admin") && (
+            <Button
+              variant="contained"
+              sx={{ 
+                backgroundColor: "#1976D2", 
+                "&:hover": { backgroundColor: "#1565C0" },
+                textTransform: "none",
+                fontWeight: "bold"
+              }}
+              onClick={() => navigate("/add-event")}
+            >
+              Add Event
+            </Button>
+          )}
         </Box>
 
         {/* TITLE */}
@@ -278,7 +293,23 @@ export default function EventsPage() {
                         setHoverAnchorEl(e.currentTarget);
                         setHoverEvent(event);
                       }}
-                      onClick={() => setOpenRegisterModal(true)}
+                      // onClick={() => setOpenRegisterModal(true)}
+                      onClick={() => {
+                        const token = localStorage.getItem("token");
+                        if (!token) {
+                          // Not logged in: Redirect to login and save the intent to register
+                          navigate("/login", { 
+                            state: { 
+                              from: location.pathname, 
+                              openRegister: true, 
+                              eventId: event._id 
+                            } 
+                          });
+                        } else {
+                          // Logged in: Open modal as usual
+                          setOpenRegisterModal(true);
+                        }
+                      }}
                     >
                       Register
                     </Button>
