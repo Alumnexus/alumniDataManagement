@@ -4,62 +4,43 @@ const studentSchema = new mongoose.Schema(
   {
     username: {
       type: String,
-      required: true
+      required: [true, "Username is required"],
+      trim: true,
     },
-
     email: {
       type: String,
-      required: true,
-      unique: true
+      required: [true, "Email is required"],
+      unique: true, // Ensures no two students have the same email
+      lowercase: true,
+      trim: true,
+      match: [/^\S+@\S+\.\S+$/, "Please use a valid email address"],
     },
-
     enrollmentNumber: {
       type: String,
-      required: true,
-      unique: true
+      required: [true, "Enrollment number is required"],
+      unique: true, // Ensures unique ID for every student
+      trim: true,
+      uppercase: true,
     },
-
     linkedIn: {
-      type: String
+      type: String,
+      trim: true,
+      default: "",
     },
-
     password: {
       type: String,
-      required: true
+      required: [true, "Password is required"],
     },
-
-    // role: {
-    //   type: String,
-    //   default: "student"
-    // },
-
-    // skills: [
-    //   {
-    //     type: String
-    //   }
-    // ],
-
-    // interests: [
-    //   {
-    //     type: String
-    //   }
-    // ],
-
-    // appliedInternships: [
-    //   {
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     ref: "Internship"
-    //   }
-    ],
-
-    mentorshipRequests: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Alumni"
-      }
-    ]
+    role: {
+      type: String,
+      default: "student", // Useful for frontend role-based access control
+    },
   },
-  { timestamps: true }
+  {
+    timestamps: true, // Automatically adds createdAt and updatedAt fields
+  }
 );
 
-export default mongoose.model("Student", studentSchema);
+const Student = mongoose.model("Student", studentSchema);
+
+export default Student;

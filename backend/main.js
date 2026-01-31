@@ -4,11 +4,11 @@ import cors from "cors";
 import "dotenv/config";
 import multer from "multer";
 import { storage } from "./Config/cloudinary.js";
-import Internship from "./models/Internship.js";
-import Job from "./models/Job.js"
-
-// Import Models
-import Event from "./models/Event.js"; // Ensure this file uses 'export default'
+import Alumni from "./models/Alumni.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import Admin from "./models/Admin.js";
+import Student from "./models/Student.js";
 
 // Routes
 import internshipRoutes from "./routes/internshipRoutes.js";
@@ -40,164 +40,166 @@ app.get("/", (req, res) => {
 app.use(internshipRoutes);
 app.use(eventRoutes);
 app.use(jobRoutes);
-app.use(alumniRoutes);
+// app.use(alumniRoutes);
 
-/**
- * Route: POST /save/event/data
- * Logic: Merged directly into main entry point
- */
-app.post("/save/event/data", upload.single("eventFile"), async (req, res) => {
+app.post("/api/alumni/register", async (req, res) => {
   try {
-    // 1. Check if Cloudinary upload succeeded
-    if (!req.file) {
-      return res.status(400).json({ error: "Event file is required." });
-    }
+    const { username, email, enrollmentNumber, linkedIn, isMentor, password } = req.body;
 
-    const {
-      title,
-      description,
-      date,
-      location,
-      maxAttendees,
-      organization,
-      category,
-      visibility,
-    } = req.body;
-
-    // 2. Create the instance using keys that match your Model exactly
-    const newEvent = new Event({
-      title,
-      description,
-      date,
-      location,
-      maxAttendees: maxAttendees ? parseInt(maxAttendees) : 0,
-      organization,
-      category,     // Must match one of the enum values in your model
-      visibility,   // Must match one of the enum values in your model
-      eventFileUrl: req.file.path, // ✅ Matches your schema key
+    // 1. Check if user already exists
+    const existingAlumni = await Alumni.findOne({ 
+      $or: [{ email }, { enrollmentNumber }] 
     });
-
-    // 3. Save to MongoDB
-    await newEvent.save();
-
-    res.status(201).json({
-      success: true,
-      message: "Event created successfully!",
-      data: newEvent,
-    });
-  } catch (error) {
-    console.error("Backend Error:", error);
-
-    // If there's a validation error (like category enum mismatch)
-    if (error.name === "ValidationError") {
-      const messages = Object.values(error.errors).map(val => val.message);
-      return res.status(400).json({ error: messages.join(", ") });
-    }
-
-    res.status(500).json({ error: "Internal Server Error." });
-  }
-});
-
-app.post("/api/internships", async (req, res) => {
-  try {
-    // 1. Destructure data from req.body
-    const { 
-      title, 
-      company, 
-      description, 
-      skills, 
-      location, 
-      stipend, 
-      duration 
-    } = req.body;
-
-    // 2. Server-side Validation
-    if (!title || !company || !description || !skills) {
-      return res.status(400).json({ 
-        success: false, 
-        error: "All required fields (Title, Company, Skills, Description) must be filled." 
-      });
-    }
-
-    // 3. Create and Save to MongoDB
-    // Using the Internship model imported at the top of your file
-    const newInternship = new Internship({
-      title,
-      company,
-      description,
-      skills,
-      location,
-      stipend,
-      duration,
-    });
-
-    await newInternship.save();
-
-    // 4. Send success response
-    res.status(201).json({
-      success: true,
-      message: "Internship posted successfully!",
-      data: newInternship,
-    });
-  } catch (error) {
-    console.error("Internship Backend Error:", error);
     
-    if (error.name === "ValidationError") {
-      return res.status(400).json({ success: false, error: error.message });
-    }
-
-    res.status(500).json({ 
-      success: false, 
-      error: "Internal Server Error. Could not save internship." 
-    });
-  }
-});
-
-app.post("/api/jobs", async (req, res) => {
-  try {
-    const { 
-      title, 
-      company, 
-      location, 
-      salary, 
-      type, 
-      skill, 
-      availablePosts, 
-      description 
-    } = req.body;
-
-    // Server-side validation
-    if (!title || !company || !location || !type || !skill || !availablePosts || !description) {
+    if (existingAlumni) {
       return res.status(400).json({ 
-        success: false, 
-        error: "Please provide all required fields." 
+        message: "Email or Enrollment Number already registered." 
       });
     }
 
-    const newJob = new Job({
-      title,
-      company,
-      location,
-      salary,
-      type,
-      skill,
-      availablePosts: parseInt(availablePosts),
-      description,
+    // 2. Hash the password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // 3. Create new Alumni
+    const newAlumni = new Alumni({
+      username,
+      email,
+      enrollmentNumber,
+      linkedIn,
+      isMentor,
+      password: hashedPassword,
     });
 
-    await newJob.save();
+    await newAlumni.save();
+
+    // 4. Generate JWT Token (Login the user immediately)
+    const token = jwt.sign(
+      { id: newAlumni._id }, 
+      process.env.JWT_SECRET || "your_jwt_secret_key", 
+      { expiresIn: "1d" }
+    );
+
+    // 5. Send response (excluding password)
+    res.status(201).json({
+      message: "Registration successful",
+      token,
+      user: {
+        id: newAlumni._id,
+        username: newAlumni.username,
+        email: newAlumni.email,
+        isMentor: newAlumni.isMentor
+      }
+    });
+
+  } catch (error) {
+    console.error("Registration Error:", error);
+    res.status(500).json({ message: "Server error during registration" });
+  }
+});
+
+app.post("/api/admin/register", async (req, res) => {
+  try {
+    const { username, email, permission, collegeDeptName, collegeCode, password } = req.body;
+
+    // 1. Check if Admin already exists
+    const existingAdmin = await Admin.findOne({ email });
+    if (existingAdmin) {
+      return res.status(400).json({ message: "Admin with this email already exists." });
+    }
+
+    // 2. Hash Password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // 3. Create Admin
+    const newAdmin = new Admin({
+      username,
+      email,
+      permission,
+      collegeDeptName,
+      collegeCode,
+      password: hashedPassword,
+    });
+
+    await newAdmin.save();
+
+    // 4. Generate JWT Token for immediate login
+    const token = jwt.sign(
+      { id: newAdmin._id, role: "admin" },
+      process.env.JWT_SECRET || "your_secret_key",
+      { expiresIn: "1d" }
+    );
+
+    // 5. Send Response
+    res.status(201).json({
+      success: true,
+      message: "Admin registered successfully",
+      token,
+      user: {
+        id: newAdmin._id,
+        username: newAdmin.username,
+        email: newAdmin.email,
+        permission: newAdmin.permission,
+        role: "admin"
+      }
+    });
+  } catch (error) {
+    console.error("Admin Registration Error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+app.post("/api/student/register", async (req, res) => {
+  try {
+    const { username, email, enrollmentNumber, linkedIn, password } = req.body;
+
+    // 1. Check if student already exists
+    const existingStudent = await Student.findOne({ 
+      $or: [{ email }, { enrollmentNumber }] 
+    });
+    
+    if (existingStudent) {
+      return res.status(400).json({ message: "Email or Enrollment Number already registered." });
+    }
+
+    // 2. Hash the password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // 3. Create Student
+    const newStudent = new Student({
+      username,
+      email,
+      enrollmentNumber,
+      linkedIn,
+      password: hashedPassword,
+    });
+
+    await newStudent.save();
+
+    // 4. Generate JWT Token (Logs the user in automatically)
+    const token = jwt.sign(
+      { id: newStudent._id, role: "student" },
+      process.env.JWT_SECRET || "your_secret_key",
+      { expiresIn: "1d" }
+    );
 
     res.status(201).json({
       success: true,
-      message: "Job posted successfully!",
-      data: newJob,
+      message: "Student registered successfully!",
+      token,
+      user: {
+        id: newStudent._id,
+        username: newStudent.username,
+        email: newStudent.email,
+        role: "student"
+      }
     });
+
   } catch (error) {
-    console.error("Job Save Error:", error);
-    res.status(500).json({ 
-      success: false, 
-      error: "Internal Server Error. Could not save job." 
-    });
+    console.error("Student Registration Error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 });
 

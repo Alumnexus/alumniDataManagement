@@ -11,14 +11,27 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Snackbar, // Added
+  Alert,    // Added
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import ReCAPTCHA from "react-google-recaptcha";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { backendAPI } from "../../middleware.js";
 
-const passwordRegex =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{6,}$/;
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{6,}$/;
 
 const AdminRegistrationForm = () => {
+  const navigate = useNavigate();
+  
+  // --- Alert State ---
+  const [alert, setAlert] = useState({
+    open: false,
+    message: "",
+    severity: "error", // can be "error", "warning", "info", "success"
+  });
+
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -34,15 +47,16 @@ const AdminRegistrationForm = () => {
   const [captchaVerified, setCaptchaVerified] = useState(false);
   const [errors, setErrors] = useState({});
 
+  // --- Alert Close Handler ---
+  const handleAlertClose = (event, reason) => {
+    if (reason === 'clickaway') return;
+    setAlert({ ...alert, open: false });
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    // live validation
     if (name === "password") {
       setErrors((prev) => ({
         ...prev,
@@ -55,8 +69,7 @@ const AdminRegistrationForm = () => {
     if (name === "confirmPassword") {
       setErrors((prev) => ({
         ...prev,
-        confirmPassword:
-          value !== formData.password ? "Passwords do not match" : "",
+        confirmPassword: value !== formData.password ? "Passwords do not match" : "",
       }));
     }
   };
@@ -65,85 +78,69 @@ const AdminRegistrationForm = () => {
     setCaptchaVerified(!!value);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!captchaVerified) {
-      alert("Please verify the CAPTCHA.");
+      setAlert({ open: true, message: "Please verify the CAPTCHA.", severity: "warning" });
       return;
     }
 
-    if (!passwordRegex.test(formData.password)) {
-      alert("Password does not meet security requirements.");
-      return;
-    }
+    try {
+      const api = backendAPI();
+      const res = await axios.post(`${api}/api/admin/register`, formData);
 
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match.");
-      return;
+      if (res.data.success) {
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        
+        // Show success alert
+        setAlert({ open: true, message: "Admin Registration Successful!", severity: "success" });
+        
+        // Redirect after a short delay so they see the success message
+        setTimeout(() => navigate("/"), 1500);
+      }
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || "Registration failed. Please try again.";
+      setAlert({ open: true, message: errorMsg, severity: "error" });
     }
-
-    console.log("Admin Registration Data:", formData);
-    // TODO: API integration
   };
 
   return (
     <Box sx={{ border: "1px solid #ccc", p: 3, borderRadius: 2 }}>
+      
+      {/* --- ALERT BOX --- */}
+      <Snackbar 
+        open={alert.open} 
+        autoHideDuration={5000} 
+        onClose={handleAlertClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }} // Positioned at top center
+      >
+        <Alert onClose={handleAlertClose} severity={alert.severity} sx={{ width: '100%' }}>
+          {alert.message}
+        </Alert>
+      </Snackbar>
+
       <Typography variant="h5" gutterBottom>
         Admin Registration
       </Typography>
 
       <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
         <Stack spacing={2}>
-          <TextField
-            label="Username"
-            name="username"
-            value={formData.username}
-            onChange={handleChange}
-            fullWidth
-            required
-          />
-
-          <TextField
-            label="Email ID"
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            fullWidth
-            required
-          />
+          <TextField label="Username" name="username" value={formData.username} onChange={handleChange} fullWidth required />
+          <TextField label="Email ID" type="email" name="email" value={formData.email} onChange={handleChange} fullWidth required />
 
           <FormControl fullWidth>
             <InputLabel>Permission</InputLabel>
-            <Select
-              name="permission"
-              value={formData.permission}
-              onChange={handleChange}
-              label="Permission"
-            >
+            <Select name="permission" value={formData.permission} onChange={handleChange} label="Permission">
               <MenuItem value="Faculty">Faculty</MenuItem>
               <MenuItem value="Admin">Admin</MenuItem>
             </Select>
           </FormControl>
 
-          <TextField
-            label="College/Department Name"
-            name="collegeDeptName"
-            value={formData.collegeDeptName}
-            onChange={handleChange}
-            fullWidth
-          />
+          <TextField label="College/Department Name" name="collegeDeptName" value={formData.collegeDeptName} onChange={handleChange} fullWidth />
+          <TextField label="College Code" name="collegeCode" value={formData.collegeCode} onChange={handleChange} fullWidth />
 
-          <TextField
-            label="College Code"
-            name="collegeCode"
-            value={formData.collegeCode}
-            onChange={handleChange}
-            fullWidth
-          />
-
-          {/* PASSWORD */}
           <TextField
             label="Password"
             name="password"
@@ -165,7 +162,6 @@ const AdminRegistrationForm = () => {
             }}
           />
 
-          {/* CONFIRM PASSWORD */}
           <TextField
             label="Confirm Password"
             name="confirmPassword"
@@ -179,11 +175,7 @@ const AdminRegistrationForm = () => {
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton
-                    onClick={() =>
-                      setShowConfirmPassword(!showConfirmPassword)
-                    }
-                  >
+                  <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
                     {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
                 </InputAdornment>
@@ -200,11 +192,7 @@ const AdminRegistrationForm = () => {
             type="submit"
             variant="contained"
             color="success"
-            disabled={
-              !!errors.password ||
-              !!errors.confirmPassword ||
-              !captchaVerified
-            }
+            disabled={!!errors.password || !!errors.confirmPassword || !captchaVerified}
           >
             Sign Up
           </Button>

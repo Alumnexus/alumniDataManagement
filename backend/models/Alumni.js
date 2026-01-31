@@ -27,7 +27,7 @@ const alumniSchema = new mongoose.Schema(
     linkedIn: {
       type: String,
       trim: true
-    },
+    },  
 
     isMentor: {
       type: Boolean,
@@ -41,16 +41,6 @@ const alumniSchema = new mongoose.Schema(
       select: false   // 🔐 hide password in queries
     },
 
-    // role: {
-    //   type: String,
-    //   enum: ["alumni", "admin"],
-    //   default: "alumni"
-    // },
-
-    // isVerified: {
-    //   type: Boolean,
-    //   default: false   // email / OTP verification
-    // }
   },
   { timestamps: true }
 );
